@@ -1,0 +1,13 @@
+{
+  "name": "validation",
+  "version": "1.0.0",
+  "description": "Bean validation starter with a sample request DTO",
+  "includes": [
+    "src/main/java/com/template/base/dto/BaseSampleRequest.java"
+  ],
+  "anchors": {
+    "gradle": {
+      "dependencies": "implementation 'org.springframework.boot:spring-boot-starter-validation'"
+    }
+  }
+}

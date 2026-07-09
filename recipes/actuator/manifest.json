@@ -1,0 +1,16 @@
+{
+  "name": "actuator",
+  "version": "1.0.0",
+  "description": "Spring Boot Actuator with health and info endpoints",
+  "includes": [
+    "src/main/java/com/template/base/config/BaseActuatorConfig.java"
+  ],
+  "config": {
+    "application": "application.yml"
+  },
+  "anchors": {
+    "gradle": {
+      "dependencies": "implementation 'org.springframework.boot:spring-boot-starter-actuator'"
+    }
+  }
+}

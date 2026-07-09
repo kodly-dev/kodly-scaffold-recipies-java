@@ -1,0 +1,15 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'kodly-scaffold-recipes'
+
+include 'core-skeleton'
+include 'redis-cache'
+include 'actuator'
+include 'validation'
+
+project(':core-skeleton').projectDir = file('skeleton')
+project(':redis-cache').projectDir = file('recipes/redis-cache')
+project(':actuator').projectDir = file('recipes/actuator')
+project(':validation').projectDir = file('recipes/validation')
