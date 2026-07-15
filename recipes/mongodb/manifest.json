@@ -1,6 +1,6 @@
 {
   "name": "mongodb",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Spring Data MongoDB with Mongock migrations, Docker Compose, and Testcontainers",
   "includes": [
     "src/main/java/com/template/base/shared/config/BaseMongoConfig.java",

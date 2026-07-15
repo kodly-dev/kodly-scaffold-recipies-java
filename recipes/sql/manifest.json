@@ -1,6 +1,6 @@
 {
   "name": "sql",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Spring Data JPA with Flyway migrations (Postgres defaults, MySQL-ready), Docker Compose, and Testcontainers",
   "includes": [
     "src/main/java/com/template/base/shared/config/BaseJpaConfig.java",
