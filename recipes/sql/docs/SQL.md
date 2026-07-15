@@ -9,8 +9,25 @@ Adds **Spring Data JPA** and **Flyway** migrations (PostgreSQL defaults). Pick t
 - PostgreSQL driver (`runtimeOnly`)
 - `BaseJpaConfig`
 - Placeholder migration: `src/main/resources/db/migration/V1__init.sql`
+- `docker-compose.sql.yml` — PostgreSQL on `localhost:5432`
+- `BaseJpaIntegrationTest` — Testcontainers + `@ServiceConnection`
 - `ddl-auto: validate` (schema owned by Flyway)
 - `spring.jpa.open-in-view: false`
+
+## Run PostgreSQL locally
+
+```bash
+docker compose -f docker-compose.sql.yml up -d
+./gradlew bootRun
+```
+
+Credentials match `application.yml`: user/password `postgres` / `postgres`, database `template-base`.
+
+## Tests
+
+`BaseJpaIntegrationTest` starts a PostgreSQL container automatically (skipped when Docker is unavailable). Flyway runs against that container.
+
+Skeleton `*ApplicationTests` still expect Postgres on localhost — start Compose before `./gradlew test`, or wire `@ServiceConnection` there as well.
 
 ## Add an entity + repository
 
@@ -50,6 +67,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
+Update `docker-compose.sql.yml` (or add a MySQL service) to match.
+
 ## Disable Flyway (local / tests)
 
 ```yaml
@@ -61,4 +80,4 @@ spring:
       ddl-auto: update   # only if you temporarily skip Flyway
 ```
 
-Prefer keeping Flyway on and using Testcontainers (or a local Postgres) for real runs.
+Prefer keeping Flyway on and using Testcontainers (or Compose) for real runs.

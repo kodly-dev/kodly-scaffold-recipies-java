@@ -1,10 +1,12 @@
 {
   "name": "sql",
-  "version": "1.0.0",
-  "description": "Spring Data JPA with Flyway migrations (Postgres defaults, MySQL-ready)",
+  "version": "1.0.1",
+  "description": "Spring Data JPA with Flyway migrations (Postgres defaults, MySQL-ready), Docker Compose, and Testcontainers",
   "includes": [
     "src/main/java/com/template/base/shared/config/BaseJpaConfig.java",
     "src/main/resources/db/migration/V1__init.sql",
+    "src/test/java/com/template/base/shared/config/BaseJpaIntegrationTest.java",
+    "docker-compose.sql.yml",
     "docs/SQL.md"
   ],
   "config": {
@@ -16,7 +18,10 @@
         "implementation 'org.springframework.boot:spring-boot-starter-data-jpa'",
         "implementation 'org.springframework.boot:spring-boot-starter-flyway'",
         "runtimeOnly 'org.postgresql:postgresql'",
-        "// runtimeOnly 'com.mysql:mysql-connector-j' // MySQL — see docs/SQL.md"
+        "// runtimeOnly 'com.mysql:mysql-connector-j' // MySQL — see docs/SQL.md",
+        "testImplementation 'org.springframework.boot:spring-boot-testcontainers'",
+        "testImplementation 'org.testcontainers:testcontainers-junit-jupiter'",
+        "testImplementation 'org.testcontainers:testcontainers-postgresql'"
       ]
     }
   }

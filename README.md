@@ -7,9 +7,9 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 | Path | Description |
 |------|-------------|
 | `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 25, vertical-slice layout) |
-| `recipes/redis-cache/` | Redis / Spring Data Redis starter (optional add-on) |
-| `recipes/mongodb/` | Spring Data MongoDB + Mongock migrations (optional; mutually exclusive with `sql`) |
-| `recipes/sql/` | Spring Data JPA + Flyway migrations, Postgres defaults (optional; mutually exclusive with `mongodb`) |
+| `recipes/redis-cache/` | Redis / Spring Data Redis starter + Compose + Testcontainers (optional add-on) |
+| `recipes/mongodb/` | Spring Data MongoDB + Mongock + Compose + Testcontainers (optional; mutually exclusive with `sql`) |
+| `recipes/sql/` | Spring Data JPA + Flyway + Compose + Testcontainers, Postgres defaults (optional; mutually exclusive with `mongodb`) |
 
 ## Base skeleton (`skeleton@1.0.1`)
 
@@ -92,7 +92,7 @@ chmod +x scripts/tag-recipes.sh
 ./scripts/tag-recipes.sh
 ```
 
-This creates tags like `skeleton@1.0.1` and `recipes/redis-cache@1.0.1`.
+This creates tags like `skeleton@1.0.1` and `recipes/redis-cache@1.0.2`.
 
 ### 2. Point CLI at this repo
 
@@ -113,22 +113,31 @@ Package (`com.rental.app`), class prefix (`RentalApp`), and Gradle project name 
 ### 4. Apply optional recipes
 
 ```bash
-kodly scaffold redis-cache@1.0.1
+kodly scaffold redis-cache@1.0.2
 
 # Pick one database stack (not both):
-kodly scaffold sql@1.0.0       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
-# kodly scaffold mongodb@1.0.0 # MongoDB + Mongock
+kodly scaffold sql@1.0.1       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
+# kodly scaffold mongodb@1.0.1 # MongoDB + Mongock
 
 kodly scaffold list
 ```
 
-### 5. Build
+### 5. Local infra + build
+
+Each infra recipe ships a Compose file and Testcontainers integration tests:
 
 ```bash
+# Examples (use the file(s) for recipes you applied):
+docker compose -f docker-compose.sql.yml up -d
+# docker compose -f docker-compose.mongodb.yml up -d
+# docker compose -f docker-compose.redis.yml up -d
+
 ./gradlew compileJava
 ./gradlew test
 ./gradlew bootRun
 ```
+
+Compose is for `bootRun` and skeleton `*ApplicationTests` (localhost defaults). Recipe `*IntegrationTest` classes start their own Testcontainers (skipped if Docker is unavailable).
 
 ### Alternative: cache recipes without git clone
 
@@ -169,7 +178,7 @@ Recipes are **full Gradle modules** in this monorepo — not just loose files. E
 - Uses `compileOnly project(':core-skeleton')` so recipe code compiles against the base skeleton APIs
 - Ships a `manifest.json` that tells the scaffolder **exactly** which files to extract into a target project
 
-Scaffold does **not** copy `build.gradle`, tests, or other DX-only files — only paths listed in `manifest.includes` (plus YAML merge / Gradle anchors).
+Scaffold copies only paths listed in `manifest.includes` (plus YAML merge / Gradle anchors). Recipe `build.gradle` stays DX-only; integration tests and Compose files are listed in `includes` so they ship into target projects.
 
 ```bash
 # Compile and test everything from repo root
@@ -223,7 +232,7 @@ Each recipe includes a root `manifest.json`:
 | `anchors.gradle.dependencies` | String or string array injected at `// KODLY_RECIPE_DEPENDENCIES_MARKER` |
 | `anchors.gradle.plugins` | Optional string or string array injected at `// KODLY_RECIPE_PLUGINS_MARKER` |
 
-Recipe Java sources use `com.template.base` and `Base*` names — the scaffolder rewrites them to match the target project. Recipe `build.gradle` and `src/test/**` stay in this repo only.
+Recipe Java sources use `com.template.base` and `Base*` names — the scaffolder rewrites them to match the target project. Recipe `build.gradle` stays in this repo only; tests listed in `includes` are scaffolded.
 
 ## Verify skeleton compiles
 

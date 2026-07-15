@@ -1,11 +1,13 @@
 {
   "name": "mongodb",
-  "version": "1.0.0",
-  "description": "Spring Data MongoDB with Mongock migrations",
+  "version": "1.0.1",
+  "description": "Spring Data MongoDB with Mongock migrations, Docker Compose, and Testcontainers",
   "includes": [
     "src/main/java/com/template/base/shared/config/BaseMongoConfig.java",
     "src/main/java/com/template/base/shared/config/BaseMongockConfig.java",
     "src/main/java/com/template/base/shared/mongock/BaseInitialChangeUnit.java",
+    "src/test/java/com/template/base/shared/config/BaseMongoIntegrationTest.java",
+    "docker-compose.mongodb.yml",
     "docs/MONGODB.md"
   ],
   "config": {
@@ -17,7 +19,10 @@
         "implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'",
         "implementation platform('io.mongock:mongock-bom:5.5.1')",
         "implementation 'io.mongock:mongock-standalone'",
-        "implementation 'io.mongock:mongodb-sync-v4-driver'"
+        "implementation 'io.mongock:mongodb-sync-v4-driver'",
+        "testImplementation 'org.springframework.boot:spring-boot-testcontainers'",
+        "testImplementation 'org.testcontainers:testcontainers-junit-jupiter'",
+        "testImplementation 'org.testcontainers:testcontainers-mongodb'"
       ]
     }
   }

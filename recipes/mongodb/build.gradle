@@ -24,6 +24,9 @@ dependencies {
     implementation 'io.mongock:mongodb-sync-v4-driver'
     testImplementation project(':core-skeleton')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

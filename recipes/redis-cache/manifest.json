@@ -1,9 +1,12 @@
 {
   "name": "redis-cache",
-  "version": "1.0.1",
-  "description": "Spring Data Redis caching setup",
+  "version": "1.0.2",
+  "description": "Spring Data Redis caching setup with Docker Compose and Testcontainers",
   "includes": [
-    "src/main/java/com/template/base/config/BaseCacheConfig.java"
+    "src/main/java/com/template/base/config/BaseCacheConfig.java",
+    "src/test/java/com/template/base/config/BaseCacheIntegrationTest.java",
+    "docker-compose.redis.yml",
+    "docs/REDIS.md"
   ],
   "config": {
     "application": "application.yml"
@@ -11,7 +14,10 @@
   "anchors": {
     "gradle": {
       "dependencies": [
-        "implementation 'org.springframework.boot:spring-boot-starter-data-redis'"
+        "implementation 'org.springframework.boot:spring-boot-starter-data-redis'",
+        "testImplementation 'org.springframework.boot:spring-boot-testcontainers'",
+        "testImplementation 'org.testcontainers:testcontainers-junit-jupiter'",
+        "testImplementation 'com.redis:testcontainers-redis'"
       ]
     }
   }
