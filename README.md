@@ -139,6 +139,19 @@ cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.1/
 kodly scaffold init --group com.rental.app --name rental-app --path /tmp/my-app
 ```
 
+## Retire a recipe
+
+`kodly scaffold list` shows recipes present on `main` under `recipes/*/`. Apply still requires a matching git tag. To fully retire a recipe:
+
+1. Remove `recipes/<name>/` from `main` (and drop it from `settings.gradle`).
+2. Delete its remote tags so apply also fails:
+
+```bash
+chmod +x scripts/untag-recipes.sh
+./scripts/untag-recipes.sh recipes/my-recipe@1.0.0
+# or: ./scripts/untag-recipes.sh my-recipe@1.0.0
+```
+
 ## Automated smoke test
 
 From this repo (requires `kodly` on PATH and tagged recipes):
