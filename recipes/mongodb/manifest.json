@@ -1,0 +1,24 @@
+{
+  "name": "mongodb",
+  "version": "1.0.0",
+  "description": "Spring Data MongoDB with Mongock migrations",
+  "includes": [
+    "src/main/java/com/template/base/shared/config/BaseMongoConfig.java",
+    "src/main/java/com/template/base/shared/config/BaseMongockConfig.java",
+    "src/main/java/com/template/base/shared/mongock/BaseInitialChangeUnit.java",
+    "docs/MONGODB.md"
+  ],
+  "config": {
+    "application": "application.yml"
+  },
+  "anchors": {
+    "gradle": {
+      "dependencies": [
+        "implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'",
+        "implementation platform('io.mongock:mongock-bom:5.5.1')",
+        "implementation 'io.mongock:mongock-standalone'",
+        "implementation 'io.mongock:mongodb-sync-v4-driver'"
+      ]
+    }
+  }
+}

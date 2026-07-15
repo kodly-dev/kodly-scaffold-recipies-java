@@ -1,0 +1,17 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [120],
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true
+  },
+  "java.format.settings.url": "spotless/eclipse-java-formatter.xml",
+  "java.format.settings.profile": "Kodly",
+  "java.configuration.updateBuildConfiguration": "automatic"
+}

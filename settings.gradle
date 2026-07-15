@@ -6,10 +6,10 @@ rootProject.name = 'kodly-scaffold-recipes'
 
 include 'core-skeleton'
 include 'redis-cache'
-include 'actuator'
-include 'validation'
+include 'mongodb'
+include 'sql'
 
 project(':core-skeleton').projectDir = file('skeleton')
 project(':redis-cache').projectDir = file('recipes/redis-cache')
-project(':actuator').projectDir = file('recipes/actuator')
-project(':validation').projectDir = file('recipes/validation')
+project(':mongodb').projectDir = file('recipes/mongodb')
+project(':sql').projectDir = file('recipes/sql')

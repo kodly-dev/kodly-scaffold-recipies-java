@@ -1,6 +1,6 @@
 {
   "name": "redis-cache",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Spring Data Redis caching setup",
   "includes": [
     "src/main/java/com/template/base/config/BaseCacheConfig.java"
@@ -10,7 +10,9 @@
   },
   "anchors": {
     "gradle": {
-      "dependencies": "implementation 'org.springframework.boot:spring-boot-starter-data-redis'"
+      "dependencies": [
+        "implementation 'org.springframework.boot:spring-boot-starter-data-redis'"
+      ]
     }
   }
 }

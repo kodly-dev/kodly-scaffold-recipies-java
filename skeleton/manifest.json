@@ -1,7 +1,7 @@
 {
   "name": "skeleton",
-  "version": "1.0.0",
-  "description": "Spring Boot 4.1 web skeleton with Kodly Gradle markers",
+  "version": "1.0.1",
+  "description": "Spring Boot 4.1 production web skeleton with vertical-slice layout, Problem Details, i18n, validation, Actuator, OpenAPI, and tracing",
   "includes": [
     "build.gradle",
     "settings.gradle",
@@ -9,10 +9,29 @@
     "gradlew.bat",
     "gradle/wrapper/gradle-wrapper.properties",
     "gradle/wrapper/gradle-wrapper.jar",
+    "gradle/libs.versions.toml",
     ".java-version",
+    "docs/FOLDER_AND_NAMING_CONVENTIONS.md",
     "src/main/java/com/template/base/BaseApplication.java",
-    "src/main/java/com/template/base/controller/BaseHelloController.java",
+    "src/main/java/com/template/base/shared/enums/BaseErrorCodeEnum.java",
+    "src/main/java/com/template/base/shared/config/BaseI18nConfig.java",
+    "src/main/java/com/template/base/shared/config/BaseWebConfig.java",
+    "src/main/java/com/template/base/shared/config/BaseObservabilityConfig.java",
+    "src/main/java/com/template/base/shared/filter/BaseCorrelationIdFilter.java",
+    "src/main/java/com/template/base/shared/exception/BaseGlobalExceptionHandler.java",
+    "src/main/java/com/template/base/greeting/model/Greeting.java",
+    "src/main/java/com/template/base/greeting/dto/CreateGreetingRequestDto.java",
+    "src/main/java/com/template/base/greeting/service/GreetingService.java",
+    "src/main/java/com/template/base/greeting/service/impl/GreetingServiceImpl.java",
+    "src/main/java/com/template/base/greeting/controller/BaseGreetingController.java",
     "src/main/resources/application.yml",
-    "src/test/java/com/template/base/BaseApplicationTests.java"
+    "src/main/resources/application-dev.yml",
+    "src/main/resources/application-prod.yml",
+    "src/main/resources/messages.properties",
+    "src/main/resources/messages_es.properties",
+    "src/test/java/com/template/base/BaseApplicationTests.java",
+    "spotless/eclipse-java-formatter.xml",
+    ".vscode/settings.json",
+    ".vscode/extensions.json"
   ]
 }

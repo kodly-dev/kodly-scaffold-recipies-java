@@ -1,0 +1,23 @@
+{
+  "name": "sql",
+  "version": "1.0.0",
+  "description": "Spring Data JPA with Flyway migrations (Postgres defaults, MySQL-ready)",
+  "includes": [
+    "src/main/java/com/template/base/shared/config/BaseJpaConfig.java",
+    "src/main/resources/db/migration/V1__init.sql",
+    "docs/SQL.md"
+  ],
+  "config": {
+    "application": "application.yml"
+  },
+  "anchors": {
+    "gradle": {
+      "dependencies": [
+        "implementation 'org.springframework.boot:spring-boot-starter-data-jpa'",
+        "implementation 'org.springframework.boot:spring-boot-starter-flyway'",
+        "runtimeOnly 'org.postgresql:postgresql'",
+        "// runtimeOnly 'com.mysql:mysql-connector-j' // MySQL — see docs/SQL.md"
+      ]
+    }
+  }
+}

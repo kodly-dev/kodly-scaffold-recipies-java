@@ -1,0 +1,47 @@
+plugins {
+    id 'java-library'
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.spotless)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${libs.versions.springBoot.get()}"
+        mavenBom 'io.mongock:mongock-bom:5.5.1'
+    }
+}
+
+dependencies {
+    compileOnly project(':core-skeleton')
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'io.mongock:mongock-standalone'
+    implementation 'io.mongock:mongodb-sync-v4-driver'
+    testImplementation project(':core-skeleton')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        eclipse().configFile("${rootProject.projectDir}/skeleton/spotless/eclipse-java-formatter.xml")
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    format 'misc', {
+        target '*.gradle', '.gitignore'
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

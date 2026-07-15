@@ -1,0 +1,15 @@
+logging:
+  level:
+    root: INFO
+    '[com.template.base]': INFO
+  structured:
+    format:
+      console: logstash
+
+management:
+  tracing:
+    sampling:
+      probability: 0.1
+  endpoint:
+    health:
+      show-details: never

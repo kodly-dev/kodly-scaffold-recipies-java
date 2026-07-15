@@ -1,0 +1,16 @@
+# Shared versions for this monorepo (skeleton + recipes).
+# Keep in sync with skeleton/gradle/libs.versions.toml (shipped on scaffold init).
+# Recipe-only versions (e.g. Mongock) stay in that recipe's build.gradle / manifest.
+
+[versions]
+springBoot = "4.1.0"
+springDependencyManagement = "1.1.7"
+spotless = "8.8.0"
+
+[libraries]
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

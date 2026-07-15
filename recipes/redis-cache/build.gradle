@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
-    id 'io.spring.dependency-management' version '1.1.7'
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.spotless)
 }
 
 java {
@@ -11,7 +12,7 @@ java {
 
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.0'
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${libs.versions.springBoot.get()}"
     }
 }
 
@@ -21,6 +22,21 @@ dependencies {
     testImplementation project(':core-skeleton')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        eclipse().configFile("${rootProject.projectDir}/skeleton/spotless/eclipse-java-formatter.xml")
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    format 'misc', {
+        target '*.gradle', '.gitignore'
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 tasks.named('test') {

@@ -6,25 +6,56 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 
 | Path | Description |
 |------|-------------|
-| `skeleton/` | Fetchable Spring Boot 4.1 web skeleton (Java 25) with Kodly Gradle markers |
-| `recipes/redis-cache/` | Redis / Spring Data Redis starter |
-| `recipes/actuator/` | Spring Boot Actuator health + info |
-| `recipes/validation/` | Bean validation starter + sample DTO |
+| `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 25, vertical-slice layout) |
+| `recipes/redis-cache/` | Redis / Spring Data Redis starter (optional add-on) |
+| `recipes/mongodb/` | Spring Data MongoDB + Mongock migrations (optional; mutually exclusive with `sql`) |
+| `recipes/sql/` | Spring Data JPA + Flyway migrations, Postgres defaults (optional; mutually exclusive with `mongodb`) |
 
-## Base skeleton
+## Base skeleton (`skeleton@1.0.1`)
 
 - **Spring Boot** 4.1.0
 - **Java** 25 (via [jenv](https://github.com/jenv/jenv))
-- **Starter** `spring-boot-starter-web`
+- **Starters** web, validation, actuator; plus springdoc OpenAPI and Micrometer Tracing (Brave)
 - **Package** `com.template.base` with `Base*` class prefix
+- **Layout** vertical slice / package-by-feature: `shared/` (cross-cutting) + sample `greeting/` feature
+- **Naming** layman suffixes: `XxxController`, `XxxService` / `XxxServiceImpl`, `XxxRequestDto`, model types, `XxxEnum`, `XxxConfig`, `XxxFilter`
+- **Conventions** ship with the scaffold: [`skeleton/docs/FOLDER_AND_NAMING_CONVENTIONS.md`](skeleton/docs/FOLDER_AND_NAMING_CONVENTIONS.md)
 - **Markers** required by scaffolder:
   - `// KODLY_RECIPE_PLUGINS_MARKER`
   - `// KODLY_RECIPE_DEPENDENCIES_MARKER`
 
+Sample packages:
+
+```
+greeting/                         # feature vertical slice
+  controller/   # BaseGreetingController
+  service/      # GreetingService (interface)
+  service/impl/ # GreetingServiceImpl
+  dto/          # CreateGreetingRequestDto
+  model/        # Greeting
+
+shared/                           # cross-cutting only
+  enums/        # BaseErrorCodeEnum
+  config/       # BaseWebConfig, BaseI18nConfig, BaseObservabilityConfig
+  filter/       # BaseCorrelationIdFilter
+  exception/    # BaseGlobalExceptionHandler
+```
+Built-in production foundations:
+
+- RFC 7807 Problem Details + global exception handler
+- i18n (`MessageSource`, `Accept-Language`, `messages*.properties`)
+- Bean validation wired to Problem Details
+- Correlation ID (`X-Request-Id` → MDC)
+- CORS defaults, graceful shutdown, `dev` / `prod` profiles
+- Actuator (`/actuator/health`, info, metrics)
+- OpenAPI / Swagger UI (`/v3/api-docs`, `/swagger-ui.html`)
+- Micrometer Tracing (Brave)
+
 Endpoints out of the box:
 
 - `GET /` → hello message
-- `GET /health` → simple OK response
+- `POST /greetings` → personalized greeting (`@Valid` body)
+- `GET /actuator/health` → Actuator health
 
 ## Java 25 setup (jenv)
 
@@ -61,7 +92,7 @@ chmod +x scripts/tag-recipes.sh
 ./scripts/tag-recipes.sh
 ```
 
-This creates tags like `skeleton@1.0.0` and `recipes/redis-cache@1.0.0`.
+This creates tags like `skeleton@1.0.1` and `recipes/redis-cache@1.0.1`.
 
 ### 2. Point CLI at this repo
 
@@ -79,12 +110,14 @@ cd /tmp/my-app
 
 Package (`com.rental.app`), class prefix (`RentalApp`), and Gradle project name (`rental-app`) are rewritten from the template tokens (`com.template.base`, `Base*`, `template-base`).
 
-### 4. Apply recipes
+### 4. Apply optional recipes
 
 ```bash
-kodly scaffold redis-cache@1.0.0
-kodly scaffold actuator@1.0.0
-kodly scaffold validation@1.0.0
+kodly scaffold redis-cache@1.0.1
+
+# Pick one database stack (not both):
+kodly scaffold sql@1.0.0       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
+# kodly scaffold mongodb@1.0.0 # MongoDB + Mongock
 
 kodly scaffold list
 ```
@@ -100,8 +133,8 @@ kodly scaffold list
 ### Alternative: cache recipes without git clone
 
 ```bash
-mkdir -p ~/.kodly/cache/skeleton/1.0.0
-cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.0/
+mkdir -p ~/.kodly/cache/skeleton/1.0.1
+cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.1/
 
 kodly scaffold init --group com.rental.app --name rental-app --path /tmp/my-app
 ```
@@ -131,10 +164,19 @@ jenv local 25.0.3
 ./gradlew check
 ```
 
+Formatting uses [Spotless](https://github.com/diffplug/spotless) with the **Eclipse JDT** formatter (2-space indent, 120-column wrap). Edit rules in [`skeleton/spotless/eclipse-java-formatter.xml`](skeleton/spotless/eclipse-java-formatter.xml). The same profile is wired for Cursor/VS Code via `.vscode/settings.json` (shipped in the skeleton so scaffolded apps get it too).
+
+```bash
+./gradlew spotlessApply   # rewrite sources to the Eclipse profile
+./gradlew spotlessCheck   # fail if formatting drifts (also runs via check)
+```
+
 | Module | Gradle task |
 |--------|-------------|
-| Base skeleton | `:core-skeleton:bootRun` |
-| All recipes | `:redis-cache:check`, `:actuator:check`, `:validation:check` |
+| Base skeleton | `:core-skeleton:bootRun` / `:core-skeleton:check` |
+| Redis recipe | `:redis-cache:check` |
+| MongoDB + Mongock | `:mongodb:check` |
+| SQL + Flyway | `:sql:check` |
 
 ## Recipe manifest contract
 
@@ -153,7 +195,9 @@ Each recipe includes a root `manifest.json`:
   },
   "anchors": {
     "gradle": {
-      "dependencies": "implementation 'org.springframework.boot:spring-boot-starter-data-redis'"
+      "dependencies": [
+        "implementation 'org.springframework.boot:spring-boot-starter-data-redis'"
+      ]
     }
   }
 }
@@ -163,7 +207,8 @@ Each recipe includes a root `manifest.json`:
 |-------|---------|
 | `includes` | **Required.** Files copied into the target project (with token mapping) |
 | `config.application` | Optional YAML file to deep-merge into `application.yml` |
-| `anchors.gradle` | Dependencies/plugins injected at Kodly markers in `build.gradle` |
+| `anchors.gradle.dependencies` | String or string array injected at `// KODLY_RECIPE_DEPENDENCIES_MARKER` |
+| `anchors.gradle.plugins` | Optional string or string array injected at `// KODLY_RECIPE_PLUGINS_MARKER` |
 
 Recipe Java sources use `com.template.base` and `Base*` names — the scaffolder rewrites them to match the target project. Recipe `build.gradle` and `src/test/**` stay in this repo only.
 

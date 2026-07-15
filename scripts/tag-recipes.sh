@@ -5,10 +5,10 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 TAGS=(
-  "skeleton@1.0.0"
-  "recipes/redis-cache@1.0.0"
-  "recipes/actuator@1.0.0"
-  "recipes/validation@1.0.0"
+  "skeleton@1.0.1"
+  "recipes/redis-cache@1.0.1"
+  "recipes/mongodb@1.0.0"
+  "recipes/sql@1.0.0"
 )
 
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
