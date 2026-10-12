@@ -5,7 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 TAGS=(
-  "skeleton@1.0.3"
+  "skeleton@1.0.4"
   "recipes/redis-cache@1.0.3"
   "recipes/mongodb@1.0.3"
   "recipes/sql@1.0.3"

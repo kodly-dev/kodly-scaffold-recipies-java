@@ -11,10 +11,11 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 | `recipes/mongodb/` | Spring Data MongoDB + Mongock + Compose + Testcontainers (optional; mutually exclusive with `sql`) |
 | `recipes/sql/` | Spring Data JPA + Flyway + Compose + Testcontainers, Postgres defaults (optional; mutually exclusive with `mongodb`) |
 
-## Base skeleton (`skeleton@1.0.1`)
+## Base skeleton (`skeleton@1.0.4`)
 
 - **Spring Boot** 4.1.0
 - **Java** 25 (via [jenv](https://github.com/jenv/jenv))
+- **Gradle** 9.8.1, pinned by the included wrapper with the official distribution checksum.
 - **Starters** web, validation, actuator; plus springdoc OpenAPI and Micrometer Tracing (Brave)
 - **Package** `com.template.base` with `Base*` class prefix
 - **Layout** vertical slice / package-by-feature: `shared/` (cross-cutting) + sample `greeting/` feature
@@ -92,7 +93,7 @@ chmod +x scripts/tag-recipes.sh
 ./scripts/tag-recipes.sh
 ```
 
-This creates tags like `skeleton@1.0.1` and `recipes/redis-cache@1.0.2`.
+This creates tags like `skeleton@1.0.4` and `recipes/redis-cache@1.0.3`.
 
 ### 2. Point CLI at this repo
 
@@ -142,8 +143,8 @@ Compose is for `bootRun` and skeleton `*ApplicationTests` (localhost defaults). 
 ### Alternative: cache recipes without git clone
 
 ```bash
-mkdir -p ~/.kodly/cache/skeleton/1.0.1
-cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.1/
+mkdir -p ~/.kodly/cache/skeleton/1.0.4
+cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.4/
 
 kodly scaffold init --group com.rental.app --name rental-app --path /tmp/my-app
 ```
