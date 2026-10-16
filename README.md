@@ -93,7 +93,7 @@ chmod +x scripts/tag-recipes.sh
 ./scripts/tag-recipes.sh
 ```
 
-This creates tags like `skeleton@1.0.4` and `recipes/redis-cache@1.0.3`.
+This reads each `manifest.json` and creates its versioned tag, such as `skeleton@1.0.4` and `recipes/redis-cache@1.0.3`. There is no separate version list in the script. Commit and review the templates before tagging; existing tags are never moved. Push the reviewed tags to make them available to the CLI/API.
 
 ### 2. Point CLI at this repo
 
@@ -114,11 +114,11 @@ Package (`com.rental.app`), class prefix (`RentalApp`), and Gradle project name 
 ### 4. Apply optional recipes
 
 ```bash
-kodly scaffold redis-cache@1.0.2
+kodly scaffold redis-cache
 
 # Pick one database stack (not both):
-kodly scaffold sql@1.0.1       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
-# kodly scaffold mongodb@1.0.1 # MongoDB + Mongock
+kodly scaffold sql       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
+# kodly scaffold mongodb # MongoDB + Mongock
 
 kodly scaffold list
 ```
@@ -140,18 +140,17 @@ docker compose -f docker-compose.sql.yml up -d
 
 Compose is for `bootRun` and skeleton `*ApplicationTests` (localhost defaults). Recipe `*IntegrationTest` classes start their own Testcontainers (skipped if Docker is unavailable).
 
-### Alternative: cache recipes without git clone
+### Version selection
 
-```bash
-mkdir -p ~/.kodly/cache/skeleton/1.0.4
-cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.4/
-
-kodly scaffold init --group com.rental.app --name rental-app --path /tmp/my-app
-```
+Use Kodly CLI 1.0.18 or newer with scaffolder 1.0.2 or newer. Omitted versions
+select the latest published stable tag; `--skeleton-version <version>` and
+`recipe@<version>` remain available for reproducible manual runs. Publishing a
+new tag affects new scaffold requests only. Existing projects are not upgraded.
+For local development, commit and tag the local clone, then use its `file://` URL.
 
 ## Retire a recipe
 
-`kodly scaffold list` shows recipes present on `main` under `recipes/*/`. Apply still requires a matching git tag. To fully retire a recipe:
+`kodly scaffold list` shows the latest stable published tag for every recipe. Unversioned init/create/apply use the same catalog; a manifest change is unavailable until its tag is published. To fully retire a recipe:
 
 1. Remove `recipes/<name>/` from `main` (and drop it from `settings.gradle`).
 2. Delete its remote tags so apply also fails:
