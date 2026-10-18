@@ -3,6 +3,7 @@
   "version": "1.0.4",
   "description": "Spring Boot 4.1 production web skeleton with vertical-slice layout, Problem Details, i18n, validation, Actuator, OpenAPI, and tracing",
   "includes": [
+    ".gitignore",
     "build.gradle",
     "settings.gradle",
     "gradlew",
