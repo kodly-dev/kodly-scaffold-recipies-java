@@ -8,7 +8,7 @@
 !.env.sample
 !.env.template
 !.env.*.example
-build/
-.gradle/
-target/
-out/
+/build/
+/.gradle/
+/target/
+/out/
