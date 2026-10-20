@@ -1,12 +1,13 @@
 {
   "name": "redis-cache",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Spring Data Redis caching setup with Docker Compose and Testcontainers",
   "includes": [
     "src/main/java/com/template/base/config/BaseCacheConfig.java",
     "src/test/java/com/template/base/config/BaseCacheIntegrationTest.java",
     "docker-compose.redis.yml",
-    "docs/REDIS.md"
+    "docs/REDIS.md",
+    "src/test/java/com/template/base/testsupport/RedisTestConfiguration.java"
   ],
   "config": {
     "application": "application.yml"

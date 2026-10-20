@@ -11,7 +11,7 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 | `recipes/mongodb/` | Spring Data MongoDB + Mongock + Compose + Testcontainers (optional; mutually exclusive with `sql`) |
 | `recipes/sql/` | Spring Data JPA + Flyway + Compose + Testcontainers, Postgres defaults (optional; mutually exclusive with `mongodb`) |
 
-## Base skeleton (`skeleton@1.0.4`)
+## Base skeleton (`skeleton@1.0.5`)
 
 - **Spring Boot** 4.1.0
 - **Java** 25 (via [jenv](https://github.com/jenv/jenv))
@@ -93,7 +93,7 @@ chmod +x scripts/tag-recipes.sh
 ./scripts/tag-recipes.sh
 ```
 
-This reads each `manifest.json` and creates its versioned tag, such as `skeleton@1.0.4` and `recipes/redis-cache@1.0.3`. There is no separate version list in the script. Commit and review the templates before tagging; existing tags are never moved. Push the reviewed tags to make them available to the CLI/API.
+This reads each `manifest.json` and creates its versioned tag, such as `skeleton@1.0.5` and `recipes/redis-cache@1.0.4`. There is no separate version list in the script. Commit and review the templates before tagging; existing tags are never moved. Push the reviewed tags to make them available to the CLI/API.
 
 ### 2. Point CLI at this repo
 
@@ -135,10 +135,11 @@ docker compose -f docker-compose.sql.yml up -d
 
 ./gradlew compileJava
 ./gradlew test
+./gradlew integrationTest
 ./gradlew bootRun
 ```
 
-Compose is for `bootRun` and skeleton `*ApplicationTests` (localhost defaults). Recipe `*IntegrationTest` classes start their own Testcontainers (skipped if Docker is unavailable).
+Compose is for `bootRun`. `build` includes portable unit tests and runs without Docker, including inside harness sandboxes. `integrationTest` retains the complete application assertions and discovers installed recipes through Spring service connections; it needs Docker for SQL, MongoDB or Redis and never depends on localhost database ports. CI and release qualification run both suites. Integration failures are not skipped or treated as passing builds.
 
 ### Version selection
 
@@ -183,10 +184,10 @@ Scaffold copies only paths listed in `manifest.includes` (plus YAML merge / Grad
 ```bash
 # Compile and test everything from repo root
 jenv local 25.0.3
-./gradlew check
+./gradlew check integrationTest
 ```
 
-Formatting uses [Spotless](https://github.com/diffplug/spotless) with the **Eclipse JDT** formatter (2-space indent, 120-column wrap). Edit rules in [`skeleton/spotless/eclipse-java-formatter.xml`](skeleton/spotless/eclipse-java-formatter.xml). The same profile is wired for Cursor/VS Code via `.vscode/settings.json` (shipped in the skeleton so scaffolded apps get it too).
+Formatting uses [Spotless](https://github.com/diffplug/spotless) with the **Eclipse JDT** formatter (2-space indent, 100-column wrap). Edit rules in [`skeleton/spotless/eclipse-java-formatter.xml`](skeleton/spotless/eclipse-java-formatter.xml). The same profile is wired for Cursor/VS Code via `.vscode/settings.json` (shipped in the skeleton so scaffolded apps get it too).
 
 ```bash
 ./gradlew spotlessApply   # rewrite sources to the Eclipse profile

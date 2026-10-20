@@ -3,6 +3,7 @@ package com.template.base.greeting.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/** Validated input for creating a personalized greeting. */
 public class CreateGreetingRequestDto {
 
   @NotBlank(message = "{greeting.name.not_blank}")

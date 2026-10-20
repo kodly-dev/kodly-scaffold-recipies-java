@@ -27,6 +27,4 @@ docker compose -f docker-compose.mongodb.yml -f docker-compose.redis.yml up -d
 
 ## Tests
 
-`BaseCacheIntegrationTest` starts a Redis container automatically (skipped when Docker is unavailable).
-
-Skeleton `*ApplicationTests` still expect Redis on localhost — start Compose before `./gradlew test`, or add `@ServiceConnection` Redis there as well.
+Use `./gradlew build` for portable compilation, formatting and unit tests. Start Docker before `./gradlew integrationTest`. The shared `BaseIntegrationTest` starts Redis through `RedisTestConfiguration` for both the skeleton and recipe tests. No Redis instance needs to run on localhost. Tests fail if Docker is unavailable.

@@ -20,6 +20,7 @@ dependencies {
     compileOnly project(':core-skeleton')
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation project(':core-skeleton')
+    testImplementation files(rootProject.project(':core-skeleton').sourceSets.test.output)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'

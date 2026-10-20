@@ -14,10 +14,12 @@ public enum BaseErrorCodeEnum {
     this.typeUri = typeUri;
   }
 
+  /** Returns the base key for localized title and detail messages. */
   public String messageKey() {
     return messageKey;
   }
 
+  /** Returns the stable Problem Details type identifier. */
   public String typeUri() {
     return typeUri;
   }

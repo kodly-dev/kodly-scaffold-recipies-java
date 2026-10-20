@@ -7,6 +7,7 @@ Adds **Spring Data JPA** and **Flyway** migrations (PostgreSQL defaults). Pick t
 - `spring-boot-starter-data-jpa`
 - `spring-boot-starter-flyway`
 - PostgreSQL driver (`runtimeOnly`)
+- Flyway's PostgreSQL database module (`runtimeOnly`)
 - `BaseJpaConfig`
 - Placeholder migration: `src/main/resources/db/migration/V1__init.sql`
 - `docker-compose.sql.yml` — PostgreSQL on `localhost:5432`
@@ -25,9 +26,7 @@ Credentials match `application.yml`: user/password `postgres` / `postgres`, data
 
 ## Tests
 
-`BaseJpaIntegrationTest` starts a PostgreSQL container automatically (skipped when Docker is unavailable). Flyway runs against that container.
-
-Skeleton `*ApplicationTests` still expect Postgres on localhost — start Compose before `./gradlew test`, or wire `@ServiceConnection` there as well.
+Use `./gradlew build` for portable compilation, formatting and unit tests. Start Docker before `./gradlew integrationTest`. The shared `BaseIntegrationTest` starts PostgreSQL through `SqlTestConfiguration` for both the skeleton and recipe tests. Flyway runs against that container, and the integration test verifies that migration `1` succeeded. Tests fail if Docker is unavailable.
 
 ## Add an entity + repository
 
@@ -49,11 +48,13 @@ Put repositories under the feature package: `myfeature/repository/`. Add matchin
 
 ## MySQL instead of Postgres
 
-In `build.gradle`, swap the driver:
+In `build.gradle`, swap the driver and Flyway database module:
 
 ```gradle
 // runtimeOnly 'org.postgresql:postgresql'
+// runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 runtimeOnly 'com.mysql:mysql-connector-j'
+runtimeOnly 'org.flywaydb:flyway-mysql'
 ```
 
 In `application.yml`:
@@ -67,7 +68,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
-Update `docker-compose.sql.yml` (or add a MySQL service) to match.
+Update `docker-compose.sql.yml` (or add a MySQL service) and the test container in `SqlTestConfiguration` to match. The default recipe checks exercise PostgreSQL.
 
 ## Disable Flyway (local / tests)
 

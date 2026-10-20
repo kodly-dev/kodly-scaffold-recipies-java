@@ -21,9 +21,7 @@ docker compose -f docker-compose.mongodb.yml up -d
 
 ## Tests
 
-`BaseMongoIntegrationTest` starts a MongoDB container automatically (skipped when Docker is unavailable).
-
-Skeleton `*ApplicationTests` still expect Mongo on localhost — start Compose before `./gradlew test`, or wire `@ServiceConnection` there as well.
+Use `./gradlew build` for portable compilation, formatting and unit tests. Start Docker before `./gradlew integrationTest`. The shared `BaseIntegrationTest` starts MongoDB through `MongoTestConfiguration` for both the skeleton and recipe tests. No database needs to run on localhost. Tests fail if Docker is unavailable.
 
 ## Add a document + repository
 

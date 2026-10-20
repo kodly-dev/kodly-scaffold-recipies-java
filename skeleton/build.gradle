@@ -48,5 +48,19 @@ spotless {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
+
+// Database integration checks require Docker; ordinary builds remain portable to sandboxes.
+tasks.register('integrationTest', Test) {
+    description = 'Runs the complete application and installed recipe integration tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter test
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/** Propagates a request identifier through responses and diagnostic logging. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BaseCorrelationIdFilter extends OncePerRequestFilter {
@@ -21,12 +22,13 @@ public class BaseCorrelationIdFilter extends OncePerRequestFilter {
   public static final String MDC_REQUEST_ID = "requestId";
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+      FilterChain filterChain)
       throws ServletException, IOException {
     String requestId = request.getHeader(BaseWebConfig.REQUEST_ID_HEADER);
     if (!StringUtils.hasText(requestId)) {
       requestId = UUID.randomUUID()
-        .toString();
+          .toString();
     }
 
     MDC.put(MDC_REQUEST_ID, requestId);

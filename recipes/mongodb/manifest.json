@@ -1,6 +1,6 @@
 {
   "name": "mongodb",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Spring Data MongoDB with Mongock migrations, Docker Compose, and Testcontainers",
   "includes": [
     "src/main/java/com/template/base/shared/config/BaseMongoConfig.java",
@@ -8,7 +8,8 @@
     "src/main/java/com/template/base/shared/mongock/BaseInitialChangeUnit.java",
     "src/test/java/com/template/base/shared/config/BaseMongoIntegrationTest.java",
     "docker-compose.mongodb.yml",
-    "docs/MONGODB.md"
+    "docs/MONGODB.md",
+    "src/test/java/com/template/base/testsupport/MongoTestConfiguration.java"
   ],
   "config": {
     "application": "application.yml"
