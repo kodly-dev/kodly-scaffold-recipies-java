@@ -12,6 +12,29 @@ Adds **Spring Data MongoDB** and **Mongock** migrations. Pick this **or** the `s
 - `BaseMongoIntegrationTest` — Testcontainers + `@ServiceConnection`
 - Default URI: `mongodb://localhost:27017/template-base`
 
+## Kodly-managed database
+
+The recipe uses Spring Boot 4's `spring.mongodb.uri` and `spring.mongodb.database`.
+They read the existing Kodly secret names `MONGO_URI` and `MONGO_DATABASE` respectively.
+Kodly resolves these secrets for the codebase when starting its server; no secret renaming
+or checked-in credentials are needed. `MONGO_DATABASE` selects the codebase database even
+when the URI contains another database or uses `authSource=admin`.
+
+Outside Kodly, set both environment variables to use a remote database, or leave both
+unset for the local Compose defaults. Store credentials in your runtime secret manager,
+not source files. `BaseMongoEnvironmentTest` checks this configuration contract without
+Testcontainers replacing it.
+
+## Add to an existing codebase
+
+Recipes can be added after the Java codebase has been created. From its root, run
+`kodly scaffold list` to fetch the current published catalog, then
+`kodly scaffold apply mongodb --dry-run`. Inspect the changes before running
+`kodly scaffold apply mongodb`. Review the resulting diff: applying a recipe merges its
+configuration and can replace matching files or settings. Preserve existing customizations.
+Run `./gradlew build`, the configured lint and duplicate checks, and
+`./gradlew integrationTest` with Docker available before accepting the changes.
+
 ## Run MongoDB locally
 
 ```bash

@@ -113,15 +113,31 @@ Package (`com.rental.app`), class prefix (`RentalApp`), and Gradle project name 
 
 ### 4. Apply optional recipes
 
+Recipes can be added to an existing compatible codebase at any time; they are not
+limited to project creation. Discover what is currently published instead of
+maintaining a separate list in agent prompts or application code:
+
 ```bash
-kodly scaffold redis-cache
-
-# Pick one database stack (not both):
-kodly scaffold sql       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
-# kodly scaffold mongodb # MongoDB + Mongock
-
 kodly scaffold list
+kodly scaffold apply --help
 ```
+
+Read the selected recipe's manifest and documentation from its published Git tag
+to understand compatibility and required services. Then, from the existing
+codebase root, preview and apply that selection:
+
+```bash
+kodly scaffold apply <recipe-from-catalog> --dry-run
+kodly scaffold apply <recipe-from-catalog>
+```
+
+The CLI merges Gradle dependencies and application YAML and copies recipe files.
+Matching files/settings can be replaced, so start from a saved revision, inspect
+the dry run, preserve customizations and review the final diff. Do not recreate the
+codebase to add a capability. Check the runtime's existing secret names against the
+recipe placeholders without displaying their values. Installing source does not
+itself provision every external service. Run the configured build, lint,
+duplicate checks and relevant integration tests before accepting the change.
 
 ### 5. Local infra + build
 
