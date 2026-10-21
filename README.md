@@ -6,16 +6,16 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 
 | Path | Description |
 |------|-------------|
-| `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 25, vertical-slice layout) |
+| `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 27, vertical-slice layout) |
 | `recipes/redis-cache/` | Redis / Spring Data Redis starter + Compose + Testcontainers (optional add-on) |
 | `recipes/mongodb/` | Spring Data MongoDB + Mongock + Compose + Testcontainers (optional; mutually exclusive with `sql`) |
 | `recipes/sql/` | Spring Data JPA + Flyway + Compose + Testcontainers, Postgres defaults (optional; mutually exclusive with `mongodb`) |
 
 ## Base skeleton (`skeleton@1.0.5`)
 
-- **Spring Boot** 4.1.0
-- **Java** 25 (via [jenv](https://github.com/jenv/jenv))
-- **Gradle** 9.8.1, pinned by the included wrapper with the official distribution checksum.
+- **Spring Boot** 4.1.1
+- **Java** 27 (via [jenv](https://github.com/jenv/jenv))
+- **Gradle** 9.8.2, pinned by the included wrapper with the official distribution checksum.
 - **Starters** web, validation, actuator; plus springdoc OpenAPI and Micrometer Tracing (Brave)
 - **Package** `com.template.base` with `Base*` class prefix
 - **Layout** vertical slice / package-by-feature: `shared/` (cross-cutting) + sample `greeting/` feature
@@ -58,29 +58,29 @@ Endpoints out of the box:
 - `POST /greetings` → personalized greeting (`@Valid` body)
 - `GET /actuator/health` → Actuator health
 
-## Java 25 setup (jenv)
+## Java 27 setup (jenv)
 
-This project expects **Java 25** on your machine, managed with jenv. A `.java-version` file is included at the repo root and in `skeleton/`.
+This project expects **Java 27** on your machine, managed with jenv. A `.java-version` file is included at the repo root and in `skeleton/`.
 
 ```bash
-# 1. Install JDK 25 (macOS example)
-brew install openjdk@25
+# 1. Install JDK 27 (macOS example)
+brew install openjdk@27
 
 # 2. Register it with jenv
-jenv add "$(brew --prefix openjdk@25)/libexec/openjdk.jdk/Contents/Home"
+jenv add "$(brew --prefix openjdk@27)/libexec/openjdk.jdk/Contents/Home"
 
 # 3. Enable jenv shims (add to ~/.zshrc if not already)
 eval "$(jenv init -)"
 
-# 4. Use Java 25 in this repo
+# 4. Use Java 27 in this repo
 cd kodly-scaffold-recipes
-jenv local 25.0.3
+jenv local 27.0.0
 
 # 5. Verify
 java -version
 ```
 
-Gradle uses the JDK from your environment (`JAVA_HOME` set by jenv) together with the Java 25 toolchain declared in `build.gradle`.
+Gradle uses the JDK from your environment (`JAVA_HOME` set by jenv) together with the Java 27 toolchain declared in `build.gradle`.
 
 ## Quick test with Kodly CLI
 
@@ -199,7 +199,7 @@ Scaffold copies only paths listed in `manifest.includes` (plus YAML merge / Grad
 
 ```bash
 # Compile and test everything from repo root
-jenv local 25.0.3
+jenv local 27.0.0
 ./gradlew check integrationTest
 ```
 
@@ -254,6 +254,24 @@ Recipe Java sources use `com.template.base` and `Base*` names — the scaffolder
 ## Verify skeleton compiles
 
 ```bash
-jenv local 25.0.3
+jenv local 27.0.0
 ./gradlew :core-skeleton:bootRun
 ```
+
+## Repository-owned checks
+
+Generated projects run `sh gradlew build`: unit/contract and integration tests, Spotless, Checkstyle
+and PMD copy/paste detection are declared in their own build and checked-in configuration.
+Full database checks use `sh gradlew integrationTest` with Docker. See the generated
+`docs/TESTING.md`. Kodly executes these native commands without installing fallback checkers.
+
+The harness recipe qualification covers all database combinations. After generating
+a skeleton, verify that its native rules reject deliberately invalid source with
+`KODLY_JAVA_FIXTURE=/absolute/path/to/generated-app node --test scripts/test-native-checks.mjs`.
+This test uses a disposable copy and leaves the generated project unchanged.
+
+Set `KODLY_LONG_NAME_FIXTURE` to a generated MongoDB project named
+`clean-stack-final-api-20261021` to verify that identifier substitution preserves
+Checkstyle and formatter compliance. Set `KODLY_MONGO_FIXTURE` to a generated
+MongoDB project to check startup, migration receipts and warning-free integration
+test reports; supply the Mongo test variables described in `docs/TESTING.md`.

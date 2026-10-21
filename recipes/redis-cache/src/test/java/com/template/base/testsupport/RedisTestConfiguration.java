@@ -13,6 +13,6 @@ public class RedisTestConfiguration {
   @Bean
   @ServiceConnection
   RedisContainer redis() {
-    return new RedisContainer(DockerImageName.parse("redis:7-alpine"));
+    return new RedisContainer(DockerImageName.parse("redis:8.10.2-alpine"));
   }
 }

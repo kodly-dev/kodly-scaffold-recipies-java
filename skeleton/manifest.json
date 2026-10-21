@@ -1,6 +1,6 @@
 {
   "name": "skeleton",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Spring Boot 4.1 production web skeleton with vertical-slice layout, Problem Details, i18n, validation, Actuator, OpenAPI, and tracing",
   "includes": [
     ".gitignore",
@@ -36,6 +36,10 @@
     ".vscode/extensions.json",
     "src/test/java/com/template/base/BaseIntegrationTest.java",
     "src/test/java/com/template/base/BaseTestInfrastructure.java",
-    "src/test/java/com/template/base/greeting/GreetingContractTest.java"
+    "src/test/java/com/template/base/greeting/GreetingContractTest.java",
+    "gradle/quality.gradle",
+    "gradle/testing.gradle",
+    "config/checkstyle/checkstyle.xml",
+    "docs/TESTING.md"
   ]
 }

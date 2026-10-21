@@ -1,0 +1,6 @@
+# Kodly provides the same connection with a separate <database>-test database.
+# No fallback to the normal database: missing test secrets must fail the checks.
+spring:
+  mongodb:
+    uri: ${MONGO_URI_TEST}
+    database: ${MONGO_DATABASE_TEST}

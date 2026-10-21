@@ -30,7 +30,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 /** Returns localized Problem Details with request and trace identifiers. */
 @RestControllerAdvice
-public class BaseGlobalExceptionHandler extends ResponseEntityExceptionHandler {
+public class BaseGlobalExceptionHandler
+    extends
+      ResponseEntityExceptionHandler {
 
   private static final Logger log =
       LoggerFactory.getLogger(BaseGlobalExceptionHandler.class);
@@ -78,7 +80,8 @@ public class BaseGlobalExceptionHandler extends ResponseEntityExceptionHandler {
   public ResponseEntity<Object> handleUnhandled(Exception ex, WebRequest request) {
     log.error("Unhandled exception", ex);
     ProblemDetail problem =
-        buildProblem(HttpStatus.INTERNAL_SERVER_ERROR, BaseErrorCodeEnum.INTERNAL,
+        buildProblem(HttpStatus.INTERNAL_SERVER_ERROR,
+            BaseErrorCodeEnum.INTERNAL,
             request);
     return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR,
         request);
@@ -97,7 +100,8 @@ public class BaseGlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return super.handleExceptionInternal(ex, body, headers, statusCode, request);
   }
 
-  private ProblemDetail buildProblem(HttpStatus status, BaseErrorCodeEnum code,
+  private ProblemDetail buildProblem(HttpStatus status,
+      BaseErrorCodeEnum code,
       WebRequest request) {
     Locale locale = LocaleContextHolder.getLocale();
     String title =

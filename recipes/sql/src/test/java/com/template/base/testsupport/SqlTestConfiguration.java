@@ -13,7 +13,7 @@ public class SqlTestConfiguration {
   @Bean
   @ServiceConnection
   PostgreSQLContainer postgres() {
-    return new PostgreSQLContainer(DockerImageName.parse("postgres:16-alpine"))
+    return new PostgreSQLContainer(DockerImageName.parse("postgres:18.6-alpine"))
         .withDatabaseName("template-base")
         .withUsername("postgres")
         .withPassword("postgres");

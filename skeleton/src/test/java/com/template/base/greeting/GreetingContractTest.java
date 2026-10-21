@@ -31,7 +31,7 @@ class GreetingContractTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(mapper.readTree(mapper.writeValueAsString(response.getBody()))
         .get("message")
-        .asText())
+        .asString())
         .isEqualTo("Hello, Ada!");
   }
 

@@ -2,7 +2,7 @@
 # Usage: docker compose -f docker-compose.mongodb.yml up -d
 services:
   mongodb:
-    image: mongo:7
+    image: mongo:9.0.4-resolute
     ports:
       - "27017:27017"
     volumes:

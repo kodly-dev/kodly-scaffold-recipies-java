@@ -3,7 +3,7 @@
 # Stack with SQL or Mongo: docker compose -f docker-compose.sql.yml -f docker-compose.redis.yml up -d
 services:
   redis:
-    image: redis:7-alpine
+    image: redis:8.10.2-alpine
     ports:
       - "6379:6379"
     healthcheck:

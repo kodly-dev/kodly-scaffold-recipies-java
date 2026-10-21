@@ -25,10 +25,13 @@ public class BaseMongockConfig {
       MongoDatabaseFactory databaseFactory) {
     String databaseName = databaseFactory.getMongoDatabase()
         .getName();
+    MongoSync4Driver driver = MongoSync4Driver.withDefaultLock(mongoClient, databaseName);
+    // The default recipe supports standalone MongoDB as well as replica sets.
+    driver.disableTransaction();
     return event -> MongockStandalone.builder()
-        .setDriver(MongoSync4Driver.withDefaultLock(mongoClient, databaseName))
+        .setDriver(driver)
         .addMigrationScanPackage(MIGRATION_SCAN_PACKAGE)
-        .setTransactionEnabled(false)
+        .setTransactional(false)
         .buildRunner()
         .execute();
   }

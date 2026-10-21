@@ -1,0 +1,32 @@
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Classpath
+import org.gradle.process.CommandLineArgumentProvider
+
+// Attach Mockito explicitly on modern JDKs; keep its version aligned with the test dependencies.
+configurations {
+    mockitoAgent {
+        transitive = false
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    mockitoAgent 'org.mockito:mockito-core'
+}
+
+class MockitoAgentArguments implements CommandLineArgumentProvider {
+    @Classpath
+    FileCollection agentClasspath
+
+    @Override
+    Iterable<String> asArguments() {
+        ["-javaagent:${agentClasspath.singleFile.absolutePath}"]
+    }
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgumentProviders.add(new MockitoAgentArguments(agentClasspath: configurations.mockitoAgent))
+    // Inline mocks extend the bootstrap classpath, so the default CDS archive cannot be used.
+    // Disable class-data sharing only for test workers; application JVMs keep their defaults.
+    jvmArgs '-Xshare:off'
+}
