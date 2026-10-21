@@ -45,4 +45,8 @@ spotless {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // This module keeps its merge fragment at ./application.yml. Spring treats that
+    // as external configuration and lets it override the classpath test profile.
+    // Verify the shipped application-test.yml instead; never bypass its safety guard.
+    systemProperty 'spring.config.location', 'classpath:/'
 }
