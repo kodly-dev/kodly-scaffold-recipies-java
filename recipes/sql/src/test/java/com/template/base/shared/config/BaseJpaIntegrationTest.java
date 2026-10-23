@@ -14,9 +14,11 @@ class BaseJpaIntegrationTest extends BaseIntegrationTest {
   private DataSource dataSource;
 
   @Test
-  void contextLoadsAgainstPostgresContainer() throws Exception {
+  void contextLoadsAgainstTheConfiguredTestProvider() throws Exception {
     try (Connection connection = dataSource.getConnection()) {
       assertThat(connection.isValid(5)).isTrue();
+      assertThat(connection.getMetaData()
+          .getURL()).isEqualTo(System.getenv("SQL_URL_TEST"));
     }
   }
 

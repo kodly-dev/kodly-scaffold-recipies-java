@@ -1,5 +1,6 @@
 {
   "name": "mongodb",
+  "requiresSkeleton": ">=1.0.6",
   "version": "1.0.6",
   "description": "Spring Data MongoDB, Mongock migrations and isolated tests using project secrets",
   "includes": [

@@ -29,7 +29,16 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 while IFS= read -r tag; do
+  directory="${tag%@*}"
+  if [ -n "$(git status --porcelain --untracked-files=all -- "$directory")" ]; then
+    echo "Commit changed recipe content before tagging: $directory" >&2
+    exit 1
+  fi
   if git rev-parse "$tag" >/dev/null 2>&1; then
+    if ! git diff --quiet "$tag" HEAD -- "$directory"; then
+      echo "Recipe content changed since $tag. Bump its manifest version before tagging." >&2
+      exit 1
+    fi
     echo "Tag already exists: $tag"
   else
     git tag "$tag"

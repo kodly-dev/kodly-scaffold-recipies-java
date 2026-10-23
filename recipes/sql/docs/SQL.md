@@ -11,7 +11,7 @@ Adds **Spring Data JPA** and **Flyway** migrations (PostgreSQL defaults). Pick t
 - `BaseJpaConfig`
 - Placeholder migration: `src/main/resources/db/migration/V1__init.sql`
 - `docker-compose.sql.yml` — PostgreSQL on `localhost:5432`
-- `BaseJpaIntegrationTest` — Testcontainers + `@ServiceConnection`
+- `BaseJpaIntegrationTest` — real Flyway and database assertions against your test provider
 - `ddl-auto: validate` (schema owned by Flyway)
 - `spring.jpa.open-in-view: false`
 
@@ -26,7 +26,36 @@ Credentials match `application.yml`: user/password `postgres` / `postgres`, data
 
 ## Tests
 
-Use `./gradlew build` for portable compilation, formatting and unit tests. Start Docker before `./gradlew integrationTest`. The shared `BaseIntegrationTest` starts PostgreSQL through `SqlTestConfiguration` for both the skeleton and recipe tests. Flyway runs against that container, and the integration test verifies that migration `1` succeeded. Tests fail if Docker is unavailable.
+Configure the application provider with `SQL_URL`, `SQL_USERNAME` and `SQL_PASSWORD`.
+Provide a separate test database through `SQL_URL_TEST`, `SQL_USERNAME_TEST` and
+`SQL_PASSWORD_TEST` in project secrets or your CI environment. PostgreSQL and MySQL
+JDBC URLs are supported. Credentials and connection options alone do not make a
+database separate: the host, port and database identify it.
+
+`./gradlew build` runs compilation, formatting, unit tests and the real database
+integration tests. `./gradlew integrationTest` runs the latter explicitly. Both use
+the configured external provider; no Docker is started. Missing or unsafe test
+settings fail before the application initializes. Flyway runs against the test
+database, and the integration test verifies that migration `1` succeeded. Local
+Compose is an optional provider; create a separate test database before testing.
+
+The test guard pins the URL and credentials for both the generic datasource and
+Hikari's later property binding. It also pins Flyway's separate migration
+connection to the TEST provider. The normal datasource, Hikari URL and Flyway URL
+are all checked for collisions before application beans initialize. Pool tuning
+such as maximum pool size is retained.
+
+The supplied guard supports the recipe's JDBC-backed Hikari pool. It refuses
+JNDI/XA, alternate datasource types/classes, Hikari credential providers,
+datasource property maps, catalog/schema overrides and pool initialization or
+validation SQL. Flyway JDBC property maps and initialization SQL are refused too:
+these settings can select another target independently of the TEST JDBC URL.
+For MySQL, explicit Flyway schemas/default-schema are also refused; use the
+database named in the TEST URL instead.
+The error names the setting to review. Put necessary driver connection options in
+the TEST JDBC URL; custom datasource/migration beans need their own isolation
+checks. Tests inspect actual Boot-bound Hikari and Flyway datasources without
+opening connections, in addition to the real provider integration checks.
 
 ## Add an entity + repository
 
@@ -68,7 +97,18 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
-Update `docker-compose.sql.yml` (or add a MySQL service) and the test container in `SqlTestConfiguration` to match. The default recipe checks exercise PostgreSQL.
+Configure `SQL_URL` and `SQL_URL_TEST` with MySQL JDBC URLs naming separate databases,
+and set their corresponding username/password variables. Update the optional
+`docker-compose.sql.yml` if you use it locally. No changes to `SqlTestConfiguration`
+or additional PostgreSQL test dependency are needed: the bound datasource/Flyway
+guard tests use the installed driver and do not open database connections.
+Run `./gradlew build` with the MySQL test provider to exercise real migrations too.
+
+The recipe repository's normal `check` runs the bound guard suite again with a
+MySQL-only classpath through `:sql:testMysql`. Additional recipe qualification
+generates fresh projects for both the default PostgreSQL dependencies and this
+MySQL substitution. See the repository's
+`scripts/test-sql-drivers.mjs` instructions in its README.
 
 ## Disable Flyway (local / tests)
 
@@ -81,4 +121,4 @@ spring:
       ddl-auto: update   # only if you temporarily skip Flyway
 ```
 
-Prefer keeping Flyway on and using Testcontainers (or Compose) for real runs.
+Keep Flyway enabled and use your configured external provider for real runs.

@@ -27,6 +27,11 @@ test('release tags come from every manifest and existing published tags remain i
   run('bash', ['scripts/tag-recipes.sh']);
   assert.deepEqual(run('git', ['tag']).trim().split('\n'), ['recipes/new-feature@4.5.6', 'skeleton@3.2.1']);
   const previous = run('git', ['rev-parse', 'skeleton@3.2.1']);
+  writeFileSync(join(root, 'skeleton', 'changed.txt'), 'Changed without a version bump');
+  run('git', ['add', '.']);
+  run('git', ['commit', '-m', 'Changed template']);
+  assert.throws(() => run('bash', ['scripts/tag-recipes.sh']), /version|changed/i);
+  assert.equal(run('git', ['rev-parse', 'skeleton@3.2.1']), previous);
   manifest('skeleton', 'skeleton', '3.2.2');
   run('git', ['add', '.']);
   run('git', ['commit', '-m', 'Next release']);

@@ -7,9 +7,9 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 | Path | Description |
 |------|-------------|
 | `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 27, vertical-slice layout) |
-| `recipes/redis-cache/` | Redis / Spring Data Redis starter + Compose + Testcontainers (optional add-on) |
-| `recipes/mongodb/` | Spring Data MongoDB + Mongock + Compose + Testcontainers (optional; mutually exclusive with `sql`) |
-| `recipes/sql/` | Spring Data JPA + Flyway + Compose + Testcontainers, Postgres defaults (optional; mutually exclusive with `mongodb`) |
+| `recipes/redis-cache/` | Spring Data Redis + external test provider + optional Compose |
+| `recipes/mongodb/` | Spring Data MongoDB + Mongock + external test provider (mutually exclusive with `sql`) |
+| `recipes/sql/` | Spring Data JPA + Flyway + external test provider, Postgres defaults (mutually exclusive with `mongodb`) |
 
 ## Base skeleton (`skeleton@1.0.5`)
 
@@ -141,7 +141,7 @@ duplicate checks and relevant integration tests before accepting the change.
 
 ### 5. Local infra + build
 
-Each infra recipe ships a Compose file and Testcontainers integration tests:
+Each infrastructure recipe uses a configured external test provider and includes an optional local Compose file:
 
 ```bash
 # Examples (use the file(s) for recipes you applied):
@@ -155,7 +155,13 @@ docker compose -f docker-compose.sql.yml up -d
 ./gradlew bootRun
 ```
 
-Compose is for `bootRun`. `build` includes portable unit tests and runs without Docker, including inside harness sandboxes. `integrationTest` retains the complete application assertions and discovers installed recipes through Spring service connections; it needs Docker for SQL, MongoDB or Redis and never depends on localhost database ports. CI and release qualification run both suites. Integration failures are not skipped or treated as passing builds.
+`build` includes unit and real provider integration tests. Mongo needs `MONGO_URI_TEST`
+and `MONGO_DATABASE_TEST`; SQL needs `SQL_URL_TEST`, `SQL_USERNAME_TEST` and
+`SQL_PASSWORD_TEST`; Redis needs `REDIS_URL_TEST`. Configure separate test databases
+or servers through project secrets. Tests run without Docker in Kodly and fail on
+missing or unsafe settings. See `docs/TESTING.md` and the recipe documentation.
+Current infrastructure recipes require skeleton 1.0.6 or newer and a CLI that
+enforces `requiresSkeleton` before writing files.
 
 ### Version selection
 
@@ -262,13 +268,32 @@ jenv local 27.0.0
 
 Generated projects run `sh gradlew build`: unit/contract and integration tests, Spotless, Checkstyle
 and PMD copy/paste detection are declared in their own build and checked-in configuration.
-Full database checks use `sh gradlew integrationTest` with Docker. See the generated
+Full database checks use `sh gradlew integrationTest` with the external test providers. See the generated
 `docs/TESTING.md`. Kodly executes these native commands without installing fallback checkers.
 
 The harness recipe qualification covers all database combinations. After generating
 a skeleton, verify that its native rules reject deliberately invalid source with
 `KODLY_JAVA_FIXTURE=/absolute/path/to/generated-app node --test scripts/test-native-checks.mjs`.
 This test uses a disposable copy and leaves the generated project unchanged.
+
+The normal recipe `check` also runs `:sql:testMysql`: all bound Hikari/Flyway guard
+cases on a MySQL-only classpath, with PostgreSQL's driver and Flyway module excluded.
+It does not require a database. Qualify the generated projects for both dialects too:
+
+```bash
+# First build the local kodly-cli packages with npm run build in that repository.
+KODLY_SCAFFOLDER_MODULE=/absolute/path/to/kodly-cli/packages/scaffolder/dist/index.js \
+  node --test scripts/test-sql-drivers.mjs
+```
+
+This generates two fresh projects from the local templates, applies the documented
+MySQL dependency/YAML substitution to one, and forces all bound Hikari/Flyway guard
+tests to run. It verifies each test runtime contains only its chosen JDBC driver.
+It needs Java 27 and Gradle dependency access, but no database. Set
+`KODLY_GRADLE_OFFLINE=true` to use an already populated dependency cache and
+`KODLY_SQL_REPORT_DIR` to retain commands, generated configuration, logs and XML.
+Real provider qualification additionally runs `sh gradlew build` in each dialect's
+generated project with the separate SQL test database configured.
 
 Set `KODLY_LONG_NAME_FIXTURE` to a generated MongoDB project named
 `clean-stack-final-api-20261021` to verify that identifier substitution preserves

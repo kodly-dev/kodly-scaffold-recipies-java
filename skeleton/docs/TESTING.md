@@ -27,5 +27,37 @@ container or manual database setup is needed in Kodly. Missing or unsafe setting
 fail the checks. Outside Kodly, supply the same variables through your environment
 or CI secret manager. Never commit credentials.
 
-Optional SQL and Redis recipes still supply their integration infrastructure through
-Testcontainers and require Docker. See the installed recipe documentation.
+SQL and Redis recipes also use external providers configured through project secrets.
+SQL needs `SQL_URL_TEST`, `SQL_USERNAME_TEST` and `SQL_PASSWORD_TEST`. Redis needs
+`REDIS_URL_TEST`. Select a separate test database or server; tests refuse the normal
+application database even when the credentials or URL query options differ. Neither
+recipe starts Docker. The default `build` includes these integration tests and fails
+with an actionable configuration error when test-provider secrets are missing.
+
+All Spring application and data-slice tests install the isolation guard through
+`META-INF/spring.factories`, including tests that do not extend `BaseIntegrationTest`.
+Ordinary unit tests with mocked collaborators do not connect to these providers.
+
+The guard resolves normal application configuration separately before installing any
+test settings. It honors standard Spring connection properties, environment aliases
+and application profiles (including default profiles), and excludes the `test`
+profile, inlined/dynamic test properties and `@TestPropertySource` files from that
+normal identity. Redis URL settings take precedence over standalone host/port/database
+settings, as in Spring Boot. Keep application connection configuration in normal
+configuration sources; a custom connection factory or programmatically created
+datasource needs its own isolation checks.
+
+For SQL, the TEST provider also overrides Hikari's pool URL/credentials and Flyway's
+separate migration connection before either can open a connection. Settings that
+can bypass those URLs (including JNDI, alternate datasource factories, arbitrary
+driver property maps and pool initialization SQL) are refused before application
+beans initialize. See the SQL recipe's testing notes for the supported settings.
+
+Recipes declaring `requiresSkeleton` need the version in `.kodly/skeleton.json` to
+match. For older generated projects, back up the project and review the skeleton's
+`BaseIntegrationTest`, `BaseTestInfrastructure`, `BaseTestEnvironment`,
+`META-INF/spring.factories` and Gradle
+testing configuration with your existing tests. Apply the corresponding package and
+class-prefix changes, run the isolated provider tests, then record the upgraded
+skeleton version. Do not change the version marker without upgrading and verifying
+the test infrastructure. Use a CLI release that enforces recipe compatibility.
