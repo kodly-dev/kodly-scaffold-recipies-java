@@ -69,7 +69,10 @@ tasks.register('testMysql', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.output + sourceSets.main.output + configurations.mysqlTestRuntimeClasspath
     useJUnitPlatform()
-    filter { includeTestsMatching '*SqlBoundDataSourceTest' }
+    filter {
+        includeTestsMatching '*SqlBoundDataSourceTest'
+        includeTestsMatching '*SqlJdbcUrlIsolationTest'
+    }
     shouldRunAfter test
 }
 

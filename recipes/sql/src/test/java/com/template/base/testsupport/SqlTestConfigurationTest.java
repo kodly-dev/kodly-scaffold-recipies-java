@@ -18,6 +18,28 @@ class SqlTestConfigurationTest {
   Path directory;
 
   @Test
+  void loopbackAliasesCannotMakeTheApplicationDatabaseLookSeparate() {
+    for (String host : new String[]{"localhost", "localhost.", "127.0.0.1", "127.0.0.2", "[::1]"}) {
+      MockEnvironment environment =
+          credentials().withProperty("SQL_URL", "jdbc:postgresql://localhost:5432/app")
+              .withProperty("SQL_URL_TEST", "jdbc:postgresql://" + host + ":5432/app");
+      assertThatThrownBy(() -> new SqlTestConfiguration(environment))
+          .hasMessageContaining("separate database");
+    }
+  }
+
+  @Test
+  void mysqlCannotSelectTheApplicationDatabaseThroughHibernateDefaults() {
+    for (String selector : new String[]{"default_catalog", "default_schema"}) {
+      MockEnvironment environment = credentials().withProperty("SQL_URL", "jdbc:mysql://db/app")
+          .withProperty("SQL_URL_TEST", "jdbc:mysql://db/app_test")
+          .withProperty("spring.jpa.properties.hibernate." + selector, "app");
+      assertThatThrownBy(() -> new SqlTestConfiguration(environment))
+          .hasMessageContaining(selector);
+    }
+  }
+
+  @Test
   void rejectsTheEffectiveSpringDatasourceEvenWithoutCustomNormalVariables() {
     MockEnvironment environment =
         credentials().withProperty("spring.datasource.url", "jdbc:postgresql://db/app")

@@ -57,6 +57,16 @@ the TEST JDBC URL; custom datasource/migration beans need their own isolation
 checks. Tests inspect actual Boot-bound Hikari and Flyway datasources without
 opening connections, in addition to the real provider integration checks.
 
+Name the database and provider in the URL path and authority. JDBC query selectors
+such as PostgreSQL `PGDBNAME`/`PGHOST`/`PGPORT` and MySQL `DBNAME` are refused,
+including aliases, case variants and encoded names. Configuration transforms,
+alternate socket factories and connection initialization SQL are also refused.
+These checks cover the TEST URL and normal datasource/Hikari/Flyway URLs.
+JDBC URLs containing fragments (`#`) are refused because driver parsing differs
+from ordinary URI parsing. Normal options such as TLS and connection timeouts
+remain supported. The guard tests run against the installed PostgreSQL or MySQL
+driver to verify these rules without opening a connection.
+
 ## Add an entity + repository
 
 ```java

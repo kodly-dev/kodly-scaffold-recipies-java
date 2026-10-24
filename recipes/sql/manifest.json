@@ -6,6 +6,8 @@
   "includes": [
     "src/test/java/com/template/base/testsupport/SqlTestConfigurationTest.java",
     "src/test/java/com/template/base/testsupport/SqlBoundDataSourceTest.java",
+    "src/test/java/com/template/base/testsupport/SqlJdbcIdentity.java",
+    "src/test/java/com/template/base/testsupport/SqlJdbcUrlIsolationTest.java",
     "src/main/java/com/template/base/shared/config/BaseJpaConfig.java",
     "src/main/resources/db/migration/V1__init.sql",
     "src/test/java/com/template/base/shared/config/BaseJpaIntegrationTest.java",

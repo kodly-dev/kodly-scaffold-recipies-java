@@ -41,8 +41,10 @@ public class BaseTestInfrastructure implements ImportSelector {
           throw new IllegalStateException(invalid.getCause()
               .getMessage(), invalid.getCause());
         } catch (ReflectiveOperationException invalid) {
-          throw new IllegalStateException("Cannot configure isolated recipe tests: " + name,
-              invalid);
+          throw new IllegalStateException("Cannot configure isolated recipe tests: " + name
+              + ". This data recipe is incompatible with the skeleton test infrastructure. "
+              + "Update the recipe to a version declaring requiresSkeleton, "
+              + "following docs/TESTING.md.", invalid);
         }
       }
     }

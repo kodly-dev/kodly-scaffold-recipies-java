@@ -12,10 +12,45 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class RedisTestConfigurationTest {
   @TempDir
   Path directory;
+
+  @Test
+  void loopbackAliasesCannotMakeTheApplicationDatabaseLookSeparate() {
+    for (String host : new String[]{"localhost", "localhost.", "127.0.0.1", "127.0.0.2", "[::1]"}) {
+      MockEnvironment environment =
+          new MockEnvironment().withProperty("REDIS_URL", "redis://localhost:6379/0")
+              .withProperty("REDIS_URL_TEST", "redis://" + host + ":6379/0");
+      assertThatThrownBy(() -> new RedisTestConfiguration(environment))
+          .hasMessageContaining("separate server or database");
+    }
+  }
+
+  @Test
+  void standardSpringClusterAndSentinelSettingsCannotOverrideTheTestUrl() {
+    for (String selector : new String[]{"cluster", "sentinel"}) {
+      new ApplicationContextRunner()
+          .withConfiguration(AutoConfigurations.of(DataRedisAutoConfiguration.class))
+          .withUserConfiguration(RedisTestConfiguration.class)
+          .withPropertyValues("REDIS_URL=redis://app-cache:6379/0",
+              "REDIS_URL_TEST=redis://test-cache:6379/1",
+              "spring.data.redis." + selector + ".nodes=app-cache:6379")
+          .withPropertyValues(selector.equals("sentinel")
+              ? new String[]{"spring.data.redis.sentinel.master=app-master"}
+              : new String[0])
+          .run(context -> {
+            assertThat(context).hasFailed();
+            assertThat(context.getStartupFailure())
+                .hasRootCauseMessage("Cannot isolate Redis tests with spring.data.redis."
+                    + selector + "; use REDIS_URL_TEST without alternate connection selectors.");
+          });
+    }
+  }
 
   @Test
   void protectsSpringHostPortAndDatabaseWhenNoUrlIsConfigured() throws IOException {

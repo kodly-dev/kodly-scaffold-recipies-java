@@ -2,6 +2,7 @@ package com.template.base;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
@@ -18,6 +19,20 @@ public final class BaseTestEnvironment {
   private static final String SNAPSHOT = "kodlyApplicationEnvironment";
 
   private BaseTestEnvironment() {
+  }
+
+  /** Compare known local aliases without a DNS lookup or opening a provider connection. */
+  public static String providerHost(String value) {
+    String host = value.toLowerCase(Locale.ROOT);
+    if (host.startsWith("[") && host.endsWith("]")) {
+      host = host.substring(1, host.length() - 1);
+    }
+    if (host.equals("localhost") || host.equals("localhost.")
+        || host.matches("127(?:\\.[0-9]{1,3}){3}")
+        || host.equals("::1") || host.equals("0:0:0:0:0:0:0:1")) {
+      return "loopback";
+    }
+    return host;
   }
 
   /** Captures once, before any recipe installs its test provider. */

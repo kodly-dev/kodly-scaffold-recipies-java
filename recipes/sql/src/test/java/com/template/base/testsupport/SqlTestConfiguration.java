@@ -1,9 +1,7 @@
 package com.template.base.testsupport;
 
 import com.template.base.BaseTestEnvironment;
-import java.net.URI;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -28,11 +26,12 @@ public class SqlTestConfiguration {
       normalUrl = application.getProperty("SQL_URL",
           "jdbc:postgresql://localhost:5432/template-base");
     }
-    String testDatabase = database(testUrl);
+    String testDatabase = SqlJdbcIdentity.database(testUrl);
     for (String candidate : List.of(normalUrl,
         property(application, "spring.datasource.hikari.jdbc-url"),
         property(application, "spring.flyway.url"))) {
-      if (StringUtils.hasText(candidate) && testDatabase.equals(database(candidate))) {
+      if (StringUtils.hasText(candidate)
+          && testDatabase.equals(SqlJdbcIdentity.database(candidate))) {
         throw new IllegalStateException(
             "SQL_URL_TEST must select a separate database "
                 + "from application and migration providers.");
@@ -91,6 +90,13 @@ public class SqlTestConfiguration {
       throw cannotIsolate("spring.flyway.init-sqls");
     }
     if (testUrl.startsWith("jdbc:mysql://")) {
+      for (String name : List.of("default_catalog", "default_schema", "default-catalog",
+          "default-schema")) {
+        if (StringUtils
+            .hasText(environment.getProperty("spring.jpa.properties.hibernate." + name))) {
+          throw cannotIsolate("spring.jpa.properties.hibernate." + name);
+        }
+      }
       if (StringUtils.hasText(property(environment, "spring.flyway.default-schema"))) {
         throw cannotIsolate("spring.flyway.default-schema");
       }
@@ -117,17 +123,4 @@ public class SqlTestConfiguration {
     return value;
   }
 
-  private static String database(String url) {
-    if (!url.startsWith("jdbc:postgresql://") && !url.startsWith("jdbc:mysql://")) {
-      throw new IllegalStateException("Use a PostgreSQL or MySQL JDBC URL for SQL tests.");
-    }
-    URI uri = URI.create(url.substring(5));
-    if (uri.getHost() == null || !StringUtils.hasText(uri.getPath()) || "/".equals(uri.getPath())) {
-      throw new IllegalStateException("SQL test URLs must name a host and database.");
-    }
-    int port =
-        uri.getPort() == -1 ? "postgresql".equals(uri.getScheme()) ? 5432 : 3306 : uri.getPort();
-    return uri.getScheme() + "://" + uri.getHost()
-        .toLowerCase(Locale.ROOT) + ":" + port + uri.getPath();
-  }
 }

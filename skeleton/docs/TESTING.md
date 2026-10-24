@@ -33,6 +33,12 @@ SQL needs `SQL_URL_TEST`, `SQL_USERNAME_TEST` and `SQL_PASSWORD_TEST`. Redis nee
 application database even when the credentials or URL query options differ. Neither
 recipe starts Docker. The default `build` includes these integration tests and fails
 with an actionable configuration error when test-provider secrets are missing.
+Loopback host aliases (`localhost`, `localhost.`, 127/8 and IPv6 loopback) identify
+the same provider. Redis cluster/sentinel configuration is refused by the bound
+standalone test factory. MySQL Hibernate default catalog/schema overrides are
+also refused. Explicit table catalogs or application-written SQL remain application
+behavior: restrict the TEST database account to its own database instead of
+granting it access to the application database.
 
 All Spring application and data-slice tests install the isolation guard through
 `META-INF/spring.factories`, including tests that do not extend `BaseIntegrationTest`.

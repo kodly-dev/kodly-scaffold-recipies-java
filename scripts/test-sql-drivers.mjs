@@ -38,7 +38,8 @@ for (const dialect of ['postgresql', 'mysql']) {
       }
 
       const args = ['gradlew', '--no-daemon', '--no-build-cache', '--rerun-tasks', '--max-workers=2',
-        'test', '--tests', '*SqlBoundDataSourceTest', 'dependencies', '--configuration', 'testRuntimeClasspath'];
+        'test', '--tests', '*SqlBoundDataSourceTest', '--tests', '*SqlJdbcUrlIsolationTest',
+        'dependencies', '--configuration', 'testRuntimeClasspath'];
       if (process.env.KODLY_GRADLE_OFFLINE === 'true') args.splice(1, 0, '--offline');
       const result = spawnSync('sh', args, { cwd: root, encoding: 'utf8',
         env: { ...process.env, CI: 'true' }, timeout: 240_000, maxBuffer: 8 * 1024 * 1024 });
@@ -58,11 +59,22 @@ for (const dialect of ['postgresql', 'mysql']) {
 
       assert.equal(result.error, undefined, output);
       assert.equal(result.status, 0, output);
-      assert.equal(suites.length, 1, 'The complete bound datasource/Flyway suite must run');
-      const xml = readFileSync(join(reports, suites[0]), 'utf8');
+      assert.equal(suites.length, 2, 'Both the bound datasource/Flyway and driver-routing suites must run');
+      const boundSuite = suites.find(file => file.endsWith('.SqlBoundDataSourceTest.xml'));
+      const routingSuite = suites.find(file => file.endsWith('.SqlJdbcUrlIsolationTest.xml'));
+      assert.ok(boundSuite, 'Missing bound datasource suite');
+      assert.ok(routingSuite, 'Missing driver-routing suite');
+      const xml = readFileSync(join(reports, boundSuite), 'utf8');
       assert.match(xml, /tests="21"/);
       for (const attribute of ['failures', 'errors', 'skipped']) assert.match(xml, new RegExp(`${attribute}="0"`));
       assert.match(xml, /name="separateFlywayConnectionUsesTheTestProviderBeforeMigrationsRun\(\)"/);
+      const routingXml = readFileSync(join(reports, routingSuite), 'utf8');
+      assert.match(routingXml, /tests="110"/);
+      for (const attribute of ['failures', 'errors', 'skipped']) assert.match(routingXml, new RegExp(`${attribute}="0"`));
+      assert.match(routingXml, /actualDriverDatabaseOverrideIsRefusedBeforeBeansInitialize/);
+      assert.match(routingXml, /#\?PGDBNAME=application/);
+      assert.match(routingXml, /spelling = &quot;application%00&quot;/);
+      assert.match(routingXml, /spelling = &quot;%1Fapplication&quot;/);
       const [own, other] = dialect === 'mysql' ? ['com.mysql:mysql-connector-j', 'org.postgresql:postgresql']
         : ['org.postgresql:postgresql', 'com.mysql:mysql-connector-j'];
       assert.ok(output.includes(own), `Missing ${dialect} runtime driver`);
