@@ -72,6 +72,7 @@ tasks.register('testMysql', Test) {
     filter {
         includeTestsMatching '*SqlBoundDataSourceTest'
         includeTestsMatching '*SqlJdbcUrlIsolationTest'
+        includeTestsMatching '*SqlDynamicProviderTest'
     }
     shouldRunAfter test
 }

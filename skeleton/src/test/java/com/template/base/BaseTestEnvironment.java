@@ -1,10 +1,13 @@
 package com.template.base;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -27,12 +30,51 @@ public final class BaseTestEnvironment {
     if (host.startsWith("[") && host.endsWith("]")) {
       host = host.substring(1, host.length() - 1);
     }
-    if (host.equals("localhost") || host.equals("localhost.")
+    if (host.endsWith(".")) {
+      host = host.substring(0, host.length() - 1);
+    }
+    if (host.contains(":")) {
+      try {
+        // A colon identifies an IPv6 literal, so this never performs a hostname lookup.
+        InetAddress literal = InetAddress.getByName(host);
+        if (literal.isLoopbackAddress() || literal.isAnyLocalAddress()) {
+          return "loopback";
+        }
+        return literal.getHostAddress();
+      } catch (UnknownHostException invalid) {
+        throw new IllegalStateException("Invalid provider IP address", invalid);
+      }
+    }
+    if (host.equals("0.0.0.0") || host.equals("localhost") || host.equals("localhost.")
         || host.matches("127(?:\\.[0-9]{1,3}){3}")
         || host.equals("::1") || host.equals("0:0:0:0:0:0:0:1")) {
       return "loopback";
     }
     return host;
+  }
+
+  /** DNS aliases are not separate providers; unresolved hosts cannot prove separation. */
+  public static boolean sameProviderHost(String left, String right) throws UnknownHostException {
+    String a = providerHost(left), b = providerHost(right);
+    if (a.equals(b)) {
+      return true;
+    }
+    Set<String> application = providerAddresses(a);
+    return providerAddresses(b).stream()
+        .anyMatch(application::contains);
+  }
+
+  private static Set<String> providerAddresses(String host) throws UnknownHostException {
+    if (host.equals("loopback")) {
+      return Set.of("loopback");
+    }
+    InetAddress[] addresses = InetAddress.getAllByName(host);
+    if (addresses.length == 0) {
+      throw new UnknownHostException("No provider addresses returned");
+    }
+    return Arrays.stream(addresses)
+        .map(address -> providerHost(address.getHostAddress()))
+        .collect(Collectors.toSet());
   }
 
   /** Captures once, before any recipe installs its test provider. */

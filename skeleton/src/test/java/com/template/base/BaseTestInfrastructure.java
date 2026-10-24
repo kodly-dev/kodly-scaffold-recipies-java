@@ -32,6 +32,13 @@ public class BaseTestInfrastructure implements ImportSelector {
       if (imports.length > 0) {
         BaseTestEnvironment.capture(context.getEnvironment(), configuration);
       }
+      install(context, imports);
+      // DynamicPropertySource customizers run after this customizer. Reapply at refresh,
+      // after all customizers and before any application/configuration-properties bean exists.
+      context.addBeanFactoryPostProcessor(ignored -> install(context, imports));
+    }
+
+    private void install(ConfigurableApplicationContext context, String[] imports) {
       for (String name : imports) {
         try {
           ClassUtils.forName(name, getClass().getClassLoader())

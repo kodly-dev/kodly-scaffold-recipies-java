@@ -2,6 +2,7 @@ package com.template.base.testsupport;
 
 import com.template.base.BaseTestEnvironment;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.List;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -26,7 +27,7 @@ public class RedisTestConfiguration {
     Environment application = BaseTestEnvironment.application(environment);
     rejectAlternateProviders(application);
     rejectAlternateProviders(environment);
-    if (database(testUrl).equals(applicationDatabase(application))) {
+    if (sameDatabase(database(testUrl), applicationDatabase(application))) {
       throw new IllegalStateException(
           "REDIS_URL_TEST must select a separate server or database "
               + "from the application Redis configuration.");
@@ -37,7 +38,7 @@ public class RedisTestConfiguration {
             "spring.data.redis.url", testUrl, "spring.data.redis.database", databaseNumber(uri))));
   }
 
-  private static String applicationDatabase(Environment application) {
+  private static Endpoint applicationDatabase(Environment application) {
     String url = application.getProperty("spring.data.redis.url");
     if (StringUtils.hasText(url)) {
       return database(url);
@@ -45,27 +46,42 @@ public class RedisTestConfiguration {
     if (url != null || application.containsProperty("spring.data.redis.host")
         || application.containsProperty("spring.data.redis.port")
         || application.containsProperty("spring.data.redis.database")) {
-      return BaseTestEnvironment
-          .providerHost(application.getProperty("spring.data.redis.host", "localhost"))
-          + ":" + application.getProperty("spring.data.redis.port", Integer.class, 6379)
-          + "/" + application.getProperty("spring.data.redis.database", Integer.class, 0);
+      return new Endpoint(application.getProperty("spring.data.redis.host", "localhost"),
+          application.getProperty("spring.data.redis.port", Integer.class, 6379),
+          application.getProperty("spring.data.redis.database", Integer.class, 0));
     }
     return database(application.getProperty("REDIS_URL", "redis://localhost:6379/0"));
   }
 
-  private static String database(String url) {
+  private static Endpoint database(String url) {
     URI uri = URI.create(url);
     if (!"redis".equals(uri.getScheme()) && !"rediss".equals(uri.getScheme())
         || uri.getHost() == null) {
       throw new IllegalStateException("Use a redis:// or rediss:// URL for Redis tests.");
     }
-    return BaseTestEnvironment.providerHost(uri.getHost()) + ":"
-        + (uri.getPort() == -1 ? 6379 : uri.getPort()) + "/"
-        + databaseNumber(uri);
+    return new Endpoint(uri.getHost(), uri.getPort() == -1 ? 6379 : uri.getPort(),
+        databaseNumber(uri));
+  }
+
+  private record Endpoint(String host, int port, int database) {
+  }
+
+  private static boolean sameDatabase(Endpoint left, Endpoint right) {
+    if (left.port() != right.port() || left.database() != right.database()) {
+      return false;
+    }
+    try {
+      return BaseTestEnvironment.sameProviderHost(left.host(), right.host());
+    } catch (UnknownHostException unresolved) {
+      throw new IllegalStateException(
+          "Cannot verify separate Redis servers; use distinct databases or resolvable provider hosts.",
+          unresolved);
+    }
   }
 
   private static void rejectAlternateProviders(Environment environment) {
-    for (String selector : List.of("spring.data.redis.cluster", "spring.data.redis.sentinel")) {
+    for (String selector : List.of("spring.data.redis.cluster", "spring.data.redis.sentinel",
+        "spring.data.redis.masterreplica")) {
       if (!Binder.get(environment)
           .bind(selector, Bindable.mapOf(String.class, Object.class))
           .orElse(Map.of())

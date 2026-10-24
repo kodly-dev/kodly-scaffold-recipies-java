@@ -26,12 +26,11 @@ public class SqlTestConfiguration {
       normalUrl = application.getProperty("SQL_URL",
           "jdbc:postgresql://localhost:5432/template-base");
     }
-    String testDatabase = SqlJdbcIdentity.database(testUrl);
     for (String candidate : List.of(normalUrl,
         property(application, "spring.datasource.hikari.jdbc-url"),
         property(application, "spring.flyway.url"))) {
       if (StringUtils.hasText(candidate)
-          && testDatabase.equals(SqlJdbcIdentity.database(candidate))) {
+          && SqlJdbcIdentity.sameDatabase(testUrl, candidate)) {
         throw new IllegalStateException(
             "SQL_URL_TEST must select a separate database "
                 + "from application and migration providers.");
@@ -69,7 +68,8 @@ public class SqlTestConfiguration {
         "spring.datasource.hikari.credentials-provider-class-name",
         "spring.datasource.hikari.catalog", "spring.datasource.hikari.schema",
         "spring.datasource.hikari.connection-init-sql",
-        "spring.datasource.hikari.connection-test-query")) {
+        "spring.datasource.hikari.connection-test-query", "spring.liquibase.url",
+        "spring.liquibase.user", "spring.liquibase.password", "spring.r2dbc.url")) {
       if (StringUtils.hasText(property(environment, name))) {
         throw cannotIsolate(name);
       }
@@ -90,10 +90,13 @@ public class SqlTestConfiguration {
       throw cannotIsolate("spring.flyway.init-sqls");
     }
     if (testUrl.startsWith("jdbc:mysql://")) {
+      Map<String, String> jpa = Binder.get(environment)
+          .bind("spring.jpa.properties", Bindable.mapOf(String.class, String.class))
+          .orElse(Map.of());
       for (String name : List.of("default_catalog", "default_schema", "default-catalog",
           "default-schema")) {
         if (StringUtils
-            .hasText(environment.getProperty("spring.jpa.properties.hibernate." + name))) {
+            .hasText(jpa.get("hibernate." + name))) {
           throw cannotIsolate("spring.jpa.properties.hibernate." + name);
         }
       }

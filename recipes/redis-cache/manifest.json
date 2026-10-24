@@ -4,12 +4,14 @@
   "version": "1.0.5",
   "description": "Spring Data Redis caching setup with external providers and isolated test databases",
   "includes": [
+    "src/test/java/com/template/base/testsupport/RedisDnsIsolationTest.java",
     "src/test/java/com/template/base/testsupport/RedisTestConfigurationTest.java",
     "src/main/java/com/template/base/config/BaseCacheConfig.java",
     "src/test/java/com/template/base/config/BaseCacheIntegrationTest.java",
     "docker-compose.redis.yml",
     "docs/REDIS.md",
-    "src/test/java/com/template/base/testsupport/RedisTestConfiguration.java"
+    "src/test/java/com/template/base/testsupport/RedisTestConfiguration.java",
+    "src/test/java/com/template/base/testsupport/RedisDynamicProviderTest.java"
   ],
   "config": {
     "application": "application.yml"

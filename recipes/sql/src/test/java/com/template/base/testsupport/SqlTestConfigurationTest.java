@@ -19,7 +19,8 @@ class SqlTestConfigurationTest {
 
   @Test
   void loopbackAliasesCannotMakeTheApplicationDatabaseLookSeparate() {
-    for (String host : new String[]{"localhost", "localhost.", "127.0.0.1", "127.0.0.2", "[::1]"}) {
+    for (String host : new String[]{"localhost", "localhost.", "127.0.0.1", "127.0.0.2", "[::1]",
+        "0.0.0.0", "[::ffff:127.0.0.1]", "[0::1]"}) {
       MockEnvironment environment =
           credentials().withProperty("SQL_URL", "jdbc:postgresql://localhost:5432/app")
               .withProperty("SQL_URL_TEST", "jdbc:postgresql://" + host + ":5432/app");
@@ -29,11 +30,58 @@ class SqlTestConfigurationTest {
   }
 
   @Test
+  void absoluteDnsNamesCannotHideAnIdenticalServer() {
+    MockEnvironment environment = credentials().withProperty("SQL_URL", "jdbc:postgresql://db/app")
+        .withProperty("SQL_URL_TEST", "jdbc:postgresql://db./app");
+    assertThatThrownBy(() -> new SqlTestConfiguration(environment))
+        .hasMessageContaining("separate database");
+  }
+
+  @Test
+  void separateServersMayKeepTheSameDatabaseName() {
+    MockEnvironment environment =
+        credentials().withProperty("SQL_URL", "jdbc:postgresql://192.0.2.1/app")
+            .withProperty("SQL_URL_TEST", "jdbc:postgresql://192.0.2.2/app");
+    new SqlTestConfiguration(environment);
+  }
+
+  @Test
+  void mysqlCaseDifferencesCannotProveDatabaseSeparation() {
+    MockEnvironment environment =
+        credentials().withProperty("SQL_URL", "jdbc:mysql://db/application")
+            .withProperty("SQL_URL_TEST", "jdbc:mysql://db/APPLICATION");
+    assertThatThrownBy(() -> new SqlTestConfiguration(environment))
+        .hasMessageContaining("separate database");
+  }
+
+  @Test
   void mysqlCannotSelectTheApplicationDatabaseThroughHibernateDefaults() {
     for (String selector : new String[]{"default_catalog", "default_schema"}) {
       MockEnvironment environment = credentials().withProperty("SQL_URL", "jdbc:mysql://db/app")
           .withProperty("SQL_URL_TEST", "jdbc:mysql://db/app_test")
           .withProperty("spring.jpa.properties.hibernate." + selector, "app");
+      assertThatThrownBy(() -> new SqlTestConfiguration(environment))
+          .hasMessageContaining(selector);
+    }
+  }
+
+  @Test
+  void mysqlBracketPropertiesCannotSelectAnApplicationSchema() {
+    for (String selector : new String[]{"default_catalog", "default_schema"}) {
+      MockEnvironment environment = credentials().withProperty("SQL_URL", "jdbc:mysql://db/app")
+          .withProperty("SQL_URL_TEST", "jdbc:mysql://db/app_test")
+          .withProperty("spring.jpa.properties[hibernate." + selector + "]", "app");
+      assertThatThrownBy(() -> new SqlTestConfiguration(environment))
+          .hasMessageContaining(selector);
+    }
+  }
+
+  @Test
+  void alternateMigrationAndReactiveUrlsCannotReachTheApplicationProvider() {
+    for (String selector : new String[]{"spring.liquibase.url", "spring.r2dbc.url"}) {
+      MockEnvironment environment =
+          credentials().withProperty("SQL_URL_TEST", "jdbc:postgresql://db/app_test")
+              .withProperty(selector, "jdbc:postgresql://db/app");
       assertThatThrownBy(() -> new SqlTestConfiguration(environment))
           .hasMessageContaining(selector);
     }

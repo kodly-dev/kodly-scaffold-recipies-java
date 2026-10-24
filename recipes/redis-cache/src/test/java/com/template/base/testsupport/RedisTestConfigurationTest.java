@@ -22,7 +22,8 @@ class RedisTestConfigurationTest {
 
   @Test
   void loopbackAliasesCannotMakeTheApplicationDatabaseLookSeparate() {
-    for (String host : new String[]{"localhost", "localhost.", "127.0.0.1", "127.0.0.2", "[::1]"}) {
+    for (String host : new String[]{"localhost", "localhost.", "127.0.0.1", "127.0.0.2", "[::1]",
+        "0.0.0.0", "[::ffff:127.0.0.1]", "[0::1]"}) {
       MockEnvironment environment =
           new MockEnvironment().withProperty("REDIS_URL", "redis://localhost:6379/0")
               .withProperty("REDIS_URL_TEST", "redis://" + host + ":6379/0");
@@ -33,7 +34,7 @@ class RedisTestConfigurationTest {
 
   @Test
   void standardSpringClusterAndSentinelSettingsCannotOverrideTheTestUrl() {
-    for (String selector : new String[]{"cluster", "sentinel"}) {
+    for (String selector : new String[]{"cluster", "sentinel", "masterreplica"}) {
       new ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(DataRedisAutoConfiguration.class))
           .withUserConfiguration(RedisTestConfiguration.class)

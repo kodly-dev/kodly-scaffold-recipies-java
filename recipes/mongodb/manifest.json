@@ -13,7 +13,8 @@
     "src/test/java/com/template/base/testsupport/MongoTestConfiguration.java",
     "src/test/java/com/template/base/shared/config/BaseMongoEnvironmentTest.java",
     "src/test/resources/application-test.yml",
-    "src/test/java/com/template/base/testsupport/MongoTestConfigurationTest.java"
+    "src/test/java/com/template/base/testsupport/MongoTestConfigurationTest.java",
+    "src/test/java/com/template/base/testsupport/MongoDynamicProviderTest.java"
   ],
   "config": {
     "application": "application.yml"

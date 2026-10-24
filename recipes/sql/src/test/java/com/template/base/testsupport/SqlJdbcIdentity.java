@@ -3,6 +3,7 @@ package com.template.base.testsupport;
 import com.template.base.BaseTestEnvironment;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Set;
@@ -14,12 +15,31 @@ final class SqlJdbcIdentity {
       "databasename",
       "pghost", "pghostaddr", "pgport", "host", "hostname", "port", "servername", "server",
       "service", "servicefile", "pgservice", "propertiestransform", "useconfigs", "socketfactory",
-      "socketfactoryarg", "sessionvariables", "initsql", "connectioninitsql");
+      "socketfactoryarg", "sessionvariables", "initsql", "connectioninitsql", "protocol", "path",
+      "namedpipepath");
 
   private SqlJdbcIdentity() {
   }
 
-  static String database(String url) {
+  static boolean sameDatabase(String left, String right) {
+    Target a = database(left), b = database(right);
+    if (!a.dialect()
+        .equals(b.dialect()) || a.port() != b.port() || !a.name()
+            .equals(b.name()))
+      return false;
+    try {
+      return BaseTestEnvironment.sameProviderHost(a.host(), b.host());
+    } catch (UnknownHostException unresolved) {
+      throw new IllegalStateException(
+          "Cannot verify separate database servers; use distinct database names or resolvable provider hosts.",
+          unresolved);
+    }
+  }
+
+  private record Target(String dialect, String host, int port, String name) {
+  }
+
+  private static Target database(String url) {
     if (!url.startsWith("jdbc:postgresql://") && !url.startsWith("jdbc:mysql://")) {
       throw new IllegalStateException("Use a PostgreSQL or MySQL JDBC URL for SQL tests.");
     }
@@ -42,12 +62,15 @@ final class SqlJdbcIdentity {
         .substring(1), StandardCharsets.UTF_8);
     // Connector/J additionally trims decoded database names; pgjdbc preserves their boundaries.
     if ("mysql".equals(uri.getScheme())) {
-      database = database.trim();
+      // MySQL installations can use case-insensitive database identifiers. A case-only
+      // difference cannot demonstrate isolation; the actual connection URL stays unchanged.
+      database = database.trim()
+          .toLowerCase(Locale.ROOT);
     }
     if (!StringUtils.hasText(database)) {
       throw new IllegalStateException("SQL test URLs must name a host and database.");
     }
-    return uri.getScheme() + "://" + host + ":" + port + "/" + database;
+    return new Target(uri.getScheme(), host, port, database);
   }
 
   private static void rejectRouting(String query) {

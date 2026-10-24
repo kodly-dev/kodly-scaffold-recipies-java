@@ -67,3 +67,5 @@ testing configuration with your existing tests. Apply the corresponding package 
 class-prefix changes, run the isolated provider tests, then record the upgraded
 skeleton version. Do not change the version marker without upgrading and verifying
 the test infrastructure. Use a CLI release that enforces recipe compatibility.
+
+SQL and Redis tests may retain the same database name or number on separate servers. Their shared host policy normalizes known local/IP aliases and checks resolved addresses when the databases and ports match. Unresolvable hosts cannot demonstrate separation; use resolvable provider hosts or distinct databases. MySQL case-only name differences are not proof of isolation. Use test credentials that cannot access application databases. Spring dynamic test properties are followed by a final isolation pass before application beans are created.

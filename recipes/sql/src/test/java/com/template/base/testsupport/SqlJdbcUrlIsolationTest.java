@@ -34,7 +34,8 @@ class SqlJdbcUrlIsolationTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"PGDBNAME", "pgdbname", "DBNAME", "dbname", "%44BNAME",
-      "%50GDBNAME", "PGHOST", "PGPORT", "HOST", "PORT", "propertiesTransform", "useConfigs"})
+      "%50GDBNAME", "PGHOST", "PGPORT", "HOST", "PORT", "propertiesTransform", "useConfigs",
+      "protocol", "path", "namedPipePath"})
   void encodedAndCaseVariantsCannotOverrideTheTestProvider(String selector) {
     assertThatThrownBy(() -> new SqlTestConfiguration(
         environment(PREFIX + "application_test?" + selector + "=application")))

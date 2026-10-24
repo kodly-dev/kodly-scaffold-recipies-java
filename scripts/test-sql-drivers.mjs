@@ -38,7 +38,7 @@ for (const dialect of ['postgresql', 'mysql']) {
       }
 
       const args = ['gradlew', '--no-daemon', '--no-build-cache', '--rerun-tasks', '--max-workers=2',
-        'test', '--tests', '*SqlBoundDataSourceTest', '--tests', '*SqlJdbcUrlIsolationTest',
+        'test', '--tests', '*SqlBoundDataSourceTest', '--tests', '*SqlJdbcUrlIsolationTest', '--tests', '*SqlDynamicProviderTest', '--tests', '*SqlDnsIsolationTest',
         'dependencies', '--configuration', 'testRuntimeClasspath'];
       if (process.env.KODLY_GRADLE_OFFLINE === 'true') args.splice(1, 0, '--offline');
       const result = spawnSync('sh', args, { cwd: root, encoding: 'utf8',
@@ -59,7 +59,7 @@ for (const dialect of ['postgresql', 'mysql']) {
 
       assert.equal(result.error, undefined, output);
       assert.equal(result.status, 0, output);
-      assert.equal(suites.length, 2, 'Both the bound datasource/Flyway and driver-routing suites must run');
+      assert.equal(suites.length, 4, 'Bound datasource, routing, dynamic-property and DNS guard suites must run');
       const boundSuite = suites.find(file => file.endsWith('.SqlBoundDataSourceTest.xml'));
       const routingSuite = suites.find(file => file.endsWith('.SqlJdbcUrlIsolationTest.xml'));
       assert.ok(boundSuite, 'Missing bound datasource suite');
@@ -69,12 +69,18 @@ for (const dialect of ['postgresql', 'mysql']) {
       for (const attribute of ['failures', 'errors', 'skipped']) assert.match(xml, new RegExp(`${attribute}="0"`));
       assert.match(xml, /name="separateFlywayConnectionUsesTheTestProviderBeforeMigrationsRun\(\)"/);
       const routingXml = readFileSync(join(reports, routingSuite), 'utf8');
-      assert.match(routingXml, /tests="110"/);
+      assert.match(routingXml, /tests="113"/);
       for (const attribute of ['failures', 'errors', 'skipped']) assert.match(routingXml, new RegExp(`${attribute}="0"`));
       assert.match(routingXml, /actualDriverDatabaseOverrideIsRefusedBeforeBeansInitialize/);
       assert.match(routingXml, /#\?PGDBNAME=application/);
       assert.match(routingXml, /spelling = &quot;application%00&quot;/);
       assert.match(routingXml, /spelling = &quot;%1Fapplication&quot;/);
+      for (const name of ['SqlDynamicProviderTest', 'SqlDnsIsolationTest']) {
+        const suite = suites.find(file => file.endsWith(`.${name}.xml`));
+        assert.ok(suite, `Missing ${name}`);
+        const result = readFileSync(join(reports, suite), 'utf8');
+        for (const attribute of ['failures', 'errors', 'skipped']) assert.match(result, new RegExp(`${attribute}="0"`));
+      }
       const [own, other] = dialect === 'mysql' ? ['com.mysql:mysql-connector-j', 'org.postgresql:postgresql']
         : ['org.postgresql:postgresql', 'com.mysql:mysql-connector-j'];
       assert.ok(output.includes(own), `Missing ${dialect} runtime driver`);
