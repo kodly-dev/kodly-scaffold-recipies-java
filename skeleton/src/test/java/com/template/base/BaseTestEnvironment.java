@@ -55,7 +55,8 @@ public final class BaseTestEnvironment {
 
   /** DNS aliases are not separate providers; unresolved hosts cannot prove separation. */
   public static boolean sameProviderHost(String left, String right) throws UnknownHostException {
-    String a = providerHost(left), b = providerHost(right);
+    String a = providerHost(left);
+    String b = providerHost(right);
     if (a.equals(b)) {
       return true;
     }
