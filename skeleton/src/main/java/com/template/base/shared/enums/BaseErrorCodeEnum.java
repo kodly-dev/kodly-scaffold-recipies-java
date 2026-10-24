@@ -2,9 +2,12 @@ package com.template.base.shared.enums;
 
 /** Shared error codes used for Problem Details type URIs and i18n message keys. */
 public enum BaseErrorCodeEnum {
-  VALIDATION("error.validation", "https://api.template-base.local/problems/validation"),
-  NOT_FOUND("error.not_found", "https://api.template-base.local/problems/not-found"),
-  INTERNAL("error.internal", "https://api.template-base.local/problems/internal");
+  VALIDATION("error.validation",
+      "https://api.template-base.local/problems/validation"),
+  NOT_FOUND("error.not_found",
+      "https://api.template-base.local/problems/not-found"),
+  INTERNAL("error.internal",
+      "https://api.template-base.local/problems/internal");
 
   private final String messageKey;
   private final String typeUri;
@@ -14,10 +17,12 @@ public enum BaseErrorCodeEnum {
     this.typeUri = typeUri;
   }
 
+  /** Returns the base key for localized title and detail messages. */
   public String messageKey() {
     return messageKey;
   }
 
+  /** Returns the stable Problem Details type identifier. */
   public String typeUri() {
     return typeUri;
   }

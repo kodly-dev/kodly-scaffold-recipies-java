@@ -6,15 +6,16 @@ Community recipe monorepo for the Kodly deterministic scaffolder (`kodly scaffol
 
 | Path | Description |
 |------|-------------|
-| `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 25, vertical-slice layout) |
-| `recipes/redis-cache/` | Redis / Spring Data Redis starter + Compose + Testcontainers (optional add-on) |
-| `recipes/mongodb/` | Spring Data MongoDB + Mongock + Compose + Testcontainers (optional; mutually exclusive with `sql`) |
-| `recipes/sql/` | Spring Data JPA + Flyway + Compose + Testcontainers, Postgres defaults (optional; mutually exclusive with `mongodb`) |
+| `skeleton/` | Fetchable Spring Boot 4.1 production web skeleton (Java 27, vertical-slice layout) |
+| `recipes/redis-cache/` | Spring Data Redis + external test provider + optional Compose |
+| `recipes/mongodb/` | Spring Data MongoDB + Mongock + external test provider (mutually exclusive with `sql`) |
+| `recipes/sql/` | Spring Data JPA + Flyway + external test provider, Postgres defaults (mutually exclusive with `mongodb`) |
 
-## Base skeleton (`skeleton@1.0.1`)
+## Base skeleton (`skeleton@1.0.5`)
 
-- **Spring Boot** 4.1.0
-- **Java** 25 (via [jenv](https://github.com/jenv/jenv))
+- **Spring Boot** 4.1.1
+- **Java** 27 (via [jenv](https://github.com/jenv/jenv))
+- **Gradle** 9.8.2, pinned by the included wrapper with the official distribution checksum.
 - **Starters** web, validation, actuator; plus springdoc OpenAPI and Micrometer Tracing (Brave)
 - **Package** `com.template.base` with `Base*` class prefix
 - **Layout** vertical slice / package-by-feature: `shared/` (cross-cutting) + sample `greeting/` feature
@@ -57,29 +58,29 @@ Endpoints out of the box:
 - `POST /greetings` → personalized greeting (`@Valid` body)
 - `GET /actuator/health` → Actuator health
 
-## Java 25 setup (jenv)
+## Java 27 setup (jenv)
 
-This project expects **Java 25** on your machine, managed with jenv. A `.java-version` file is included at the repo root and in `skeleton/`.
+This project expects **Java 27** on your machine, managed with jenv. A `.java-version` file is included at the repo root and in `skeleton/`.
 
 ```bash
-# 1. Install JDK 25 (macOS example)
-brew install openjdk@25
+# 1. Install JDK 27 (macOS example)
+brew install openjdk@27
 
 # 2. Register it with jenv
-jenv add "$(brew --prefix openjdk@25)/libexec/openjdk.jdk/Contents/Home"
+jenv add "$(brew --prefix openjdk@27)/libexec/openjdk.jdk/Contents/Home"
 
 # 3. Enable jenv shims (add to ~/.zshrc if not already)
 eval "$(jenv init -)"
 
-# 4. Use Java 25 in this repo
+# 4. Use Java 27 in this repo
 cd kodly-scaffold-recipes
-jenv local 25.0.3
+jenv local 27.0.0
 
 # 5. Verify
 java -version
 ```
 
-Gradle uses the JDK from your environment (`JAVA_HOME` set by jenv) together with the Java 25 toolchain declared in `build.gradle`.
+Gradle uses the JDK from your environment (`JAVA_HOME` set by jenv) together with the Java 27 toolchain declared in `build.gradle`.
 
 ## Quick test with Kodly CLI
 
@@ -92,7 +93,7 @@ chmod +x scripts/tag-recipes.sh
 ./scripts/tag-recipes.sh
 ```
 
-This creates tags like `skeleton@1.0.1` and `recipes/redis-cache@1.0.2`.
+This reads each `manifest.json` and creates its versioned tag, such as `skeleton@1.0.5` and `recipes/redis-cache@1.0.4`. There is no separate version list in the script. Commit and review the templates before tagging; existing tags are never moved. Push the reviewed tags to make them available to the CLI/API.
 
 ### 2. Point CLI at this repo
 
@@ -112,19 +113,35 @@ Package (`com.rental.app`), class prefix (`RentalApp`), and Gradle project name 
 
 ### 4. Apply optional recipes
 
+Recipes can be added to an existing compatible codebase at any time; they are not
+limited to project creation. Discover what is currently published instead of
+maintaining a separate list in agent prompts or application code:
+
 ```bash
-kodly scaffold redis-cache@1.0.2
-
-# Pick one database stack (not both):
-kodly scaffold sql@1.0.1       # JPA + Flyway (Postgres defaults; MySQL in docs/SQL.md)
-# kodly scaffold mongodb@1.0.1 # MongoDB + Mongock
-
 kodly scaffold list
+kodly scaffold apply --help
 ```
+
+Read the selected recipe's manifest and documentation from its published Git tag
+to understand compatibility and required services. Then, from the existing
+codebase root, preview and apply that selection:
+
+```bash
+kodly scaffold apply <recipe-from-catalog> --dry-run
+kodly scaffold apply <recipe-from-catalog>
+```
+
+The CLI merges Gradle dependencies and application YAML and copies recipe files.
+Matching files/settings can be replaced, so start from a saved revision, inspect
+the dry run, preserve customizations and review the final diff. Do not recreate the
+codebase to add a capability. Check the runtime's existing secret names against the
+recipe placeholders without displaying their values. Installing source does not
+itself provision every external service. Run the configured build, lint,
+duplicate checks and relevant integration tests before accepting the change.
 
 ### 5. Local infra + build
 
-Each infra recipe ships a Compose file and Testcontainers integration tests:
+Each infrastructure recipe uses a configured external test provider and includes an optional local Compose file:
 
 ```bash
 # Examples (use the file(s) for recipes you applied):
@@ -134,23 +151,29 @@ docker compose -f docker-compose.sql.yml up -d
 
 ./gradlew compileJava
 ./gradlew test
+./gradlew integrationTest
 ./gradlew bootRun
 ```
 
-Compose is for `bootRun` and skeleton `*ApplicationTests` (localhost defaults). Recipe `*IntegrationTest` classes start their own Testcontainers (skipped if Docker is unavailable).
+`build` includes unit and real provider integration tests. Mongo needs `MONGO_URI_TEST`
+and `MONGO_DATABASE_TEST`; SQL needs `SQL_URL_TEST`, `SQL_USERNAME_TEST` and
+`SQL_PASSWORD_TEST`; Redis needs `REDIS_URL_TEST`. Configure separate test databases
+or servers through project secrets. Tests run without Docker in Kodly and fail on
+missing or unsafe settings. See `docs/TESTING.md` and the recipe documentation.
+Current infrastructure recipes require skeleton 1.0.6 or newer and a CLI that
+enforces `requiresSkeleton` before writing files.
 
-### Alternative: cache recipes without git clone
+### Version selection
 
-```bash
-mkdir -p ~/.kodly/cache/skeleton/1.0.1
-cp -R skeleton/* ~/.kodly/cache/skeleton/1.0.1/
-
-kodly scaffold init --group com.rental.app --name rental-app --path /tmp/my-app
-```
+Use Kodly CLI 1.0.18 or newer with scaffolder 1.0.2 or newer. Omitted versions
+select the latest published stable tag; `--skeleton-version <version>` and
+`recipe@<version>` remain available for reproducible manual runs. Publishing a
+new tag affects new scaffold requests only. Existing projects are not upgraded.
+For local development, commit and tag the local clone, then use its `file://` URL.
 
 ## Retire a recipe
 
-`kodly scaffold list` shows recipes present on `main` under `recipes/*/`. Apply still requires a matching git tag. To fully retire a recipe:
+`kodly scaffold list` shows the latest stable published tag for every recipe. Unversioned init/create/apply use the same catalog; a manifest change is unavailable until its tag is published. To fully retire a recipe:
 
 1. Remove `recipes/<name>/` from `main` (and drop it from `settings.gradle`).
 2. Delete its remote tags so apply also fails:
@@ -182,11 +205,11 @@ Scaffold copies only paths listed in `manifest.includes` (plus YAML merge / Grad
 
 ```bash
 # Compile and test everything from repo root
-jenv local 25.0.3
-./gradlew check
+jenv local 27.0.0
+./gradlew check integrationTest
 ```
 
-Formatting uses [Spotless](https://github.com/diffplug/spotless) with the **Eclipse JDT** formatter (2-space indent, 120-column wrap). Edit rules in [`skeleton/spotless/eclipse-java-formatter.xml`](skeleton/spotless/eclipse-java-formatter.xml). The same profile is wired for Cursor/VS Code via `.vscode/settings.json` (shipped in the skeleton so scaffolded apps get it too).
+Formatting uses [Spotless](https://github.com/diffplug/spotless) with the **Eclipse JDT** formatter (2-space indent, 100-column wrap). Edit rules in [`skeleton/spotless/eclipse-java-formatter.xml`](skeleton/spotless/eclipse-java-formatter.xml). The same profile is wired for Cursor/VS Code via `.vscode/settings.json` (shipped in the skeleton so scaffolded apps get it too).
 
 ```bash
 ./gradlew spotlessApply   # rewrite sources to the Eclipse profile
@@ -237,6 +260,43 @@ Recipe Java sources use `com.template.base` and `Base*` names — the scaffolder
 ## Verify skeleton compiles
 
 ```bash
-jenv local 25.0.3
+jenv local 27.0.0
 ./gradlew :core-skeleton:bootRun
 ```
+
+## Repository-owned checks
+
+Generated projects run `sh gradlew build`: unit/contract and integration tests, Spotless, Checkstyle
+and PMD copy/paste detection are declared in their own build and checked-in configuration.
+Full database checks use `sh gradlew integrationTest` with the external test providers. See the generated
+`docs/TESTING.md`. Kodly executes these native commands without installing fallback checkers.
+
+The harness recipe qualification covers all database combinations. After generating
+a skeleton, verify that its native rules reject deliberately invalid source with
+`KODLY_JAVA_FIXTURE=/absolute/path/to/generated-app node --test scripts/test-native-checks.mjs`.
+This test uses a disposable copy and leaves the generated project unchanged.
+
+The normal recipe `check` also runs `:sql:testMysql`: all bound Hikari/Flyway guard
+cases on a MySQL-only classpath, with PostgreSQL's driver and Flyway module excluded.
+It does not require a database. Qualify the generated projects for both dialects too:
+
+```bash
+# First build the local kodly-cli packages with npm run build in that repository.
+KODLY_SCAFFOLDER_MODULE=/absolute/path/to/kodly-cli/packages/scaffolder/dist/index.js \
+  node --test scripts/test-sql-drivers.mjs
+```
+
+This generates two fresh projects from the local templates, applies the documented
+MySQL dependency/YAML substitution to one, and forces all bound Hikari/Flyway guard
+tests to run. It verifies each test runtime contains only its chosen JDBC driver.
+It needs Java 27 and Gradle dependency access, but no database. Set
+`KODLY_GRADLE_OFFLINE=true` to use an already populated dependency cache and
+`KODLY_SQL_REPORT_DIR` to retain commands, generated configuration, logs and XML.
+Real provider qualification additionally runs `sh gradlew build` in each dialect's
+generated project with the separate SQL test database configured.
+
+Set `KODLY_LONG_NAME_FIXTURE` to a generated MongoDB project named
+`clean-stack-final-api-20261021` to verify that identifier substitution preserves
+Checkstyle and formatter compliance. Set `KODLY_MONGO_FIXTURE` to a generated
+MongoDB project to check startup, migration receipts and warning-free integration
+test reports; supply the Mongo test variables described in `docs/TESTING.md`.

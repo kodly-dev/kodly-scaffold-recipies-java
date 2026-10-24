@@ -1,0 +1,30 @@
+// Repository-owned verification. The same tasks run locally, in CI and in Kodly.
+apply plugin: 'checkstyle'
+
+checkstyle {
+    toolVersion = '14.3.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
+    maxWarnings = 0
+}
+
+configurations {
+    cpd
+}
+
+dependencies {
+    cpd 'net.sourceforge.pmd:pmd-cli:7.28.0'
+    cpd 'net.sourceforge.pmd:pmd-java:7.28.0'
+}
+
+tasks.register('checkDuplicates', JavaExec) {
+    description = 'Finds copied Java source blocks of 50 or more tokens.'
+    group = 'verification'
+    classpath = configurations.cpd
+    mainClass = 'net.sourceforge.pmd.cli.PmdCli'
+    args 'cpd', '--minimum-tokens', '50', '--dir', 'src/main/java', '--language', 'java'
+    inputs.files(fileTree('src/main/java') { include '**/*.java' })
+}
+
+tasks.named('check') {
+    dependsOn 'checkDuplicates'
+}

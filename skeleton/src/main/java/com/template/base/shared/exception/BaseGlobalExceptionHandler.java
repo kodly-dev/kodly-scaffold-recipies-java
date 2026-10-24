@@ -28,50 +28,68 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+/** Returns localized Problem Details with request and trace identifiers. */
 @RestControllerAdvice
-public class BaseGlobalExceptionHandler extends ResponseEntityExceptionHandler {
+public class BaseGlobalExceptionHandler
+    extends
+      ResponseEntityExceptionHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(BaseGlobalExceptionHandler.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(BaseGlobalExceptionHandler.class);
 
   private final MessageSource messageSource;
 
+  /** Creates the exception handler with localized message lookup. */
   public BaseGlobalExceptionHandler(MessageSource messageSource) {
     this.messageSource = messageSource;
   }
 
   @Override
-  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers,
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+      HttpHeaders headers,
       HttpStatusCode status, WebRequest request) {
     Map<String, String> fieldErrors = new LinkedHashMap<>();
     for (FieldError fieldError : ex.getBindingResult()
-      .getFieldErrors()) {
+        .getFieldErrors()) {
       fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
     }
-    ProblemDetail problem = buildProblem(HttpStatus.BAD_REQUEST, BaseErrorCodeEnum.VALIDATION, request);
+    ProblemDetail problem =
+        buildProblem(HttpStatus.BAD_REQUEST, BaseErrorCodeEnum.VALIDATION,
+            request);
     problem.setProperty("errors", fieldErrors);
     return handleExceptionInternal(ex, problem, headers, HttpStatus.BAD_REQUEST, request);
   }
 
+  /** Converts constraint violations into a field-level validation response. */
   @ExceptionHandler(ConstraintViolationException.class)
-  public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
+  public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex,
+      WebRequest request) {
     Map<String, String> fieldErrors = new LinkedHashMap<>();
     ex.getConstraintViolations()
-      .forEach(violation -> fieldErrors.put(violation.getPropertyPath()
-        .toString(), violation.getMessage()));
-    ProblemDetail problem = buildProblem(HttpStatus.BAD_REQUEST, BaseErrorCodeEnum.VALIDATION, request);
+        .forEach(violation -> fieldErrors.put(violation.getPropertyPath()
+            .toString(), violation.getMessage()));
+    ProblemDetail problem =
+        buildProblem(HttpStatus.BAD_REQUEST, BaseErrorCodeEnum.VALIDATION,
+            request);
     problem.setProperty("errors", fieldErrors);
     return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
   }
 
+  /** Logs unexpected failures and returns a localized internal error response. */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleUnhandled(Exception ex, WebRequest request) {
     log.error("Unhandled exception", ex);
-    ProblemDetail problem = buildProblem(HttpStatus.INTERNAL_SERVER_ERROR, BaseErrorCodeEnum.INTERNAL, request);
-    return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    ProblemDetail problem =
+        buildProblem(HttpStatus.INTERNAL_SERVER_ERROR,
+            BaseErrorCodeEnum.INTERNAL,
+            request);
+    return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR,
+        request);
   }
 
   @Override
-  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body, HttpHeaders headers,
+  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
+      HttpHeaders headers,
       HttpStatusCode statusCode, WebRequest request) {
     if (body == null && ex instanceof ErrorResponse) {
       body = buildProblem(resolveStatus(statusCode), resolveCode(statusCode), request);
@@ -82,10 +100,14 @@ public class BaseGlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return super.handleExceptionInternal(ex, body, headers, statusCode, request);
   }
 
-  private ProblemDetail buildProblem(HttpStatus status, BaseErrorCodeEnum code, WebRequest request) {
+  private ProblemDetail buildProblem(HttpStatus status,
+      BaseErrorCodeEnum code,
+      WebRequest request) {
     Locale locale = LocaleContextHolder.getLocale();
-    String title = messageSource.getMessage(code.messageKey() + ".title", null, code.name(), locale);
-    String detail = messageSource.getMessage(code.messageKey() + ".detail", null, code.name(), locale);
+    String title =
+        messageSource.getMessage(code.messageKey() + ".title", null, code.name(), locale);
+    String detail =
+        messageSource.getMessage(code.messageKey() + ".detail", null, code.name(), locale);
 
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
     problem.setTitle(title);
@@ -100,8 +122,10 @@ public class BaseGlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
     BaseErrorCodeEnum code = resolveCode(statusCode);
     Locale locale = LocaleContextHolder.getLocale();
-    problem.setTitle(messageSource.getMessage(code.messageKey() + ".title", null, code.name(), locale));
-    problem.setDetail(messageSource.getMessage(code.messageKey() + ".detail", null, code.name(), locale));
+    problem.setTitle(
+        messageSource.getMessage(code.messageKey() + ".title", null, code.name(), locale));
+    problem.setDetail(
+        messageSource.getMessage(code.messageKey() + ".detail", null, code.name(), locale));
     problem.setType(URI.create(code.typeUri()));
   }
 

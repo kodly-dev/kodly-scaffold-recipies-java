@@ -1,8 +1,10 @@
 {
   "name": "skeleton",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "description": "Spring Boot 4.1 production web skeleton with vertical-slice layout, Problem Details, i18n, validation, Actuator, OpenAPI, and tracing",
   "includes": [
+    ".kodly/skeleton.json",
+    ".gitignore",
     "build.gradle",
     "settings.gradle",
     "gradlew",
@@ -32,6 +34,16 @@
     "src/test/java/com/template/base/BaseApplicationTests.java",
     "spotless/eclipse-java-formatter.xml",
     ".vscode/settings.json",
-    ".vscode/extensions.json"
+    ".vscode/extensions.json",
+    "src/test/java/com/template/base/BaseIntegrationTest.java",
+    "src/test/java/com/template/base/BaseTestInfrastructure.java",
+    "src/test/java/com/template/base/BaseTestEnvironment.java",
+    "src/test/java/com/template/base/BaseTestEnvironmentTest.java",
+    "src/test/java/com/template/base/greeting/GreetingContractTest.java",
+    "gradle/quality.gradle",
+    "gradle/testing.gradle",
+    "config/checkstyle/checkstyle.xml",
+    "docs/TESTING.md",
+    "src/test/resources/META-INF/spring.factories"
   ]
 }

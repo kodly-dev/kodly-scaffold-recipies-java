@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+
+test('release tags come from every manifest and existing published tags remain immutable', t => {
+  const root = mkdtempSync(join(tmpdir(), 'kodly-recipe-tags-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const run = (command, args) => execFileSync(command, args, { cwd: root, encoding: 'utf8', stdio: 'pipe' });
+  mkdirSync(join(root, 'scripts'));
+  copyFileSync(new URL('./tag-recipes.sh', import.meta.url), join(root, 'scripts/tag-recipes.sh'));
+  const manifest = (directory, name, version) => {
+    mkdirSync(join(root, directory), { recursive: true });
+    writeFileSync(join(root, directory, 'manifest.json'), JSON.stringify({ name, version }));
+  };
+  manifest('skeleton', 'skeleton', '3.2.1');
+  manifest('recipes/new-feature', 'new-feature', '4.5.6');
+  run('git', ['init']);
+  run('git', ['config', 'user.email', 'fixture@example.test']);
+  run('git', ['config', 'user.name', 'Test fixture']);
+  run('git', ['config', 'commit.gpgsign', 'false']);
+  run('git', ['config', 'tag.gpgsign', 'false']);
+  run('git', ['add', '.']);
+  run('git', ['commit', '-m', 'Fixture release']);
+  run('bash', ['scripts/tag-recipes.sh']);
+  assert.deepEqual(run('git', ['tag']).trim().split('\n'), ['recipes/new-feature@4.5.6', 'skeleton@3.2.1']);
+  const previous = run('git', ['rev-parse', 'skeleton@3.2.1']);
+  writeFileSync(join(root, 'skeleton', 'changed.txt'), 'Changed without a version bump');
+  run('git', ['add', '.']);
+  run('git', ['commit', '-m', 'Changed template']);
+  assert.throws(() => run('bash', ['scripts/tag-recipes.sh']), /version|changed/i);
+  assert.equal(run('git', ['rev-parse', 'skeleton@3.2.1']), previous);
+  manifest('skeleton', 'skeleton', '3.2.2');
+  run('git', ['add', '.']);
+  run('git', ['commit', '-m', 'Next release']);
+  run('bash', ['scripts/tag-recipes.sh']);
+  assert.equal(run('git', ['rev-parse', 'skeleton@3.2.1']), previous);
+  assert.equal(run('git', ['rev-parse', 'skeleton@3.2.2']), run('git', ['rev-parse', 'HEAD']));
+});
