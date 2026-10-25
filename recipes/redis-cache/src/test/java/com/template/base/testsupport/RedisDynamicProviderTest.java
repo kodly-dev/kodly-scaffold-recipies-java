@@ -2,9 +2,9 @@ package com.template.base.testsupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.springframework.boot.data.redis.autoconfigure.DataRedisProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;

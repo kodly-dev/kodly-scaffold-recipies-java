@@ -9,12 +9,12 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
-import org.springframework.core.env.SystemEnvironmentPropertySource;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.core.env.SystemEnvironmentPropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 class RedisTestConfigurationTest {
   @TempDir

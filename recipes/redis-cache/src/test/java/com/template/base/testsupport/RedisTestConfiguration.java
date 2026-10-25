@@ -3,8 +3,8 @@ package com.template.base.testsupport;
 import com.template.base.BaseTestEnvironment;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -74,7 +74,8 @@ public class RedisTestConfiguration {
       return BaseTestEnvironment.sameProviderHost(left.host(), right.host());
     } catch (UnknownHostException unresolved) {
       throw new IllegalStateException(
-          "Cannot verify separate Redis servers; use distinct databases or resolvable provider hosts.",
+          "Cannot verify separate Redis servers; use distinct databases "
+              + "or resolvable provider hosts.",
           unresolved);
     }
   }

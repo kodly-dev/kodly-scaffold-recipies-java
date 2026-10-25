@@ -8,19 +8,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.util.ClassUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.ClassUtils;
 
 /** Exercises real Spring dynamic-property ordering without opening a provider connection. */
 class SqlDynamicProviderTest {
   private static final String PREFIX = ClassUtils.isPresent("org.postgresql.Driver", null)
       ? "jdbc:postgresql://fixture.invalid/"
       : "jdbc:mysql://fixture.invalid/";
+
   @Test
   void lateDynamicHikariBindingCannotEscapeTheSelectedTestProvider() {
     HikariDataSource bound = new TestContextManager(UnsafeDynamicTest.class)

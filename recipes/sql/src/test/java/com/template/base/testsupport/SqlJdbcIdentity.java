@@ -22,16 +22,19 @@ final class SqlJdbcIdentity {
   }
 
   static boolean sameDatabase(String left, String right) {
-    Target a = database(left), b = database(right);
+    Target a = database(left);
+    Target b = database(right);
     if (!a.dialect()
         .equals(b.dialect()) || a.port() != b.port() || !a.name()
-            .equals(b.name()))
+            .equals(b.name())) {
       return false;
+    }
     try {
       return BaseTestEnvironment.sameProviderHost(a.host(), b.host());
     } catch (UnknownHostException unresolved) {
       throw new IllegalStateException(
-          "Cannot verify separate database servers; use distinct database names or resolvable provider hosts.",
+          "Cannot verify separate database servers; use distinct database names "
+              + "or resolvable provider hosts.",
           unresolved);
     }
   }

@@ -49,3 +49,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Native build and database integration checks
         run: ./gradlew check integrationTest --no-daemon --max-workers=2
+      - name: Build generated projects with the published scaffolder
+        env:
+          KODLY_SCAFFOLDER_MODULE: ${{ runner.temp }}/kodly-scaffolder/node_modules/@kodly.dev/scaffolder/dist/index.js
+        run: |
+          npm install --prefix "$RUNNER_TEMP/kodly-scaffolder" --no-save --ignore-scripts @kodly.dev/scaffolder@1.0.2
+          node --test scripts/test-generated-builds.mjs
