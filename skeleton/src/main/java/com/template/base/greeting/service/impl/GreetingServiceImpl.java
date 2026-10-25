@@ -5,6 +5,7 @@ import com.template.base.greeting.model.Greeting;
 import com.template.base.greeting.service.GreetingService;
 import org.springframework.stereotype.Service;
 
+/** Default greeting behavior for the starter application. */
 @Service
 public class GreetingServiceImpl implements GreetingService {
 

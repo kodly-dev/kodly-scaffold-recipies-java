@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Exposes the default greeting and validated personalized greetings. */
 @RestController
 @RequestMapping
 @Tag(name = "Greeting")
@@ -22,23 +23,26 @@ public class BaseGreetingController {
 
   private final GreetingService greetingService;
 
+  /** Creates the controller with its greeting service. */
   public BaseGreetingController(GreetingService greetingService) {
     this.greetingService = greetingService;
   }
 
+  /** Returns the default greeting as plain text. */
   @GetMapping(value = "/", produces = MediaType.TEXT_PLAIN_VALUE)
   @Operation(summary = "Default greeting")
   public ResponseEntity<String> hello() {
     return ResponseEntity.ok(greetingService.defaultGreeting()
-      .message());
+        .message());
   }
 
+  /** Creates a greeting from validated request data. */
   @PostMapping(value = "/greetings", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(summary = "Create a personalized greeting")
   public ResponseEntity<Greeting> create(@Valid @RequestBody CreateGreetingRequestDto request) {
     Greeting greeting = greetingService.create(request);
     return ResponseEntity.status(HttpStatus.CREATED)
-      .body(greeting);
+        .body(greeting);
   }
 }

@@ -17,10 +17,10 @@ kodly scaffold init --group com.test.app --name test-app --path "$WORKSPACE"
 echo "==> Applying recipes"
 cd "$WORKSPACE"
 
-kodly scaffold redis-cache@1.0.2
-kodly scaffold sql@1.0.1
+kodly scaffold redis-cache
+kodly scaffold sql
 
-echo "==> Listing cached recipes"
+echo "==> Listing published recipes"
 kodly scaffold list
 
 echo "==> Compiling project"
@@ -28,4 +28,4 @@ echo "==> Compiling project"
 
 echo ""
 echo "Success. Test workspace: ${WORKSPACE}"
-echo "Note: smoke test applies sql (JPA+Flyway). For Mongo+Mongock use: kodly scaffold mongodb@1.0.1"
+echo "Note: smoke test applies sql (JPA+Flyway). For Mongo+Mongock use: kodly scaffold mongodb"

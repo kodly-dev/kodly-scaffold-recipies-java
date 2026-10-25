@@ -1,5 +1,4 @@
 spring:
   data:
     redis:
-      host: localhost
-      port: 6379
+      url: ${REDIS_URL:redis://localhost:6379/0}

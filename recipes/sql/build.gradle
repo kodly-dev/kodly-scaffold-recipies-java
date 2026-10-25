@@ -6,7 +6,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(27)
     }
 }
 
@@ -16,17 +16,29 @@ dependencyManagement {
     }
 }
 
+configurations {
+    mysqlTestRuntimeClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom testImplementation, testRuntimeOnly
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        exclude group: 'org.postgresql', module: 'postgresql'
+        exclude group: 'org.flywaydb', module: 'flyway-database-postgresql'
+    }
+}
+
 dependencies {
     compileOnly project(':core-skeleton')
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
     testImplementation project(':core-skeleton')
+    testImplementation files(rootProject.project(':core-skeleton').sourceSets.test.output)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
-    testImplementation 'org.testcontainers:testcontainers-postgresql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mysqlTestRuntimeClasspath 'com.mysql:mysql-connector-j'
+    mysqlTestRuntimeClasspath 'org.flywaydb:flyway-mysql'
 }
 
 spotless {
@@ -46,4 +58,25 @@ spotless {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register('testMysql', Test) {
+    description = 'Runs the bound datasource/Flyway guard suite with only the MySQL JDBC driver.'
+    group = 'verification'
+    dependsOn testClasses
+    // The recipe directory contains a loose PostgreSQL application.yml, not a MySQL app.
+    workingDir = rootProject.projectDir
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.output + sourceSets.main.output + configurations.mysqlTestRuntimeClasspath
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching '*SqlBoundDataSourceTest'
+        includeTestsMatching '*SqlJdbcUrlIsolationTest'
+        includeTestsMatching '*SqlDynamicProviderTest'
+    }
+    shouldRunAfter test
+}
+
+tasks.named('check') {
+    dependsOn testMysql
 }
