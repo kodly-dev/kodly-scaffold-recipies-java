@@ -53,5 +53,5 @@ jobs:
         env:
           KODLY_SCAFFOLDER_MODULE: ${{ runner.temp }}/kodly-scaffolder/node_modules/@kodly.dev/scaffolder/dist/index.js
         run: |
-          npm install --prefix "$RUNNER_TEMP/kodly-scaffolder" --no-save --ignore-scripts @kodly.dev/scaffolder@1.0.2
+          npm install --prefix "$RUNNER_TEMP/kodly-scaffolder" --no-save --ignore-scripts @kodly.dev/scaffolder@1.1.0
           node --test scripts/test-generated-builds.mjs

@@ -11,21 +11,24 @@ mkdir -p "$(dirname "$WORKSPACE")"
 
 echo "==> Initializing skeleton from ${RECIPES_REPO}"
 export KODLY_RECIPES_REPO_URL="$RECIPES_REPO"
+# kodly-scaffold (npm i -g @kodly.dev/scaffolder) accepts only the tags in its qualified catalog.
+# A local clone is not in the catalog, so this test allows it explicitly.
+export KODLY_RECIPES_ALLOW_UNQUALIFIED=1
 
-kodly scaffold init --group com.test.app --name test-app --path "$WORKSPACE"
+kodly-scaffold init --group com.test.app --name test-app --path "$WORKSPACE"
 
 echo "==> Applying recipes"
 cd "$WORKSPACE"
 
-kodly scaffold redis-cache
-kodly scaffold sql
+kodly-scaffold redis-cache
+kodly-scaffold sql
 
 echo "==> Listing published recipes"
-kodly scaffold list
+kodly-scaffold list
 
 echo "==> Compiling project"
 ./gradlew compileJava
 
 echo ""
 echo "Success. Test workspace: ${WORKSPACE}"
-echo "Note: smoke test applies sql (JPA+Flyway). For Mongo+Mongock use: kodly scaffold mongodb"
+echo "Note: smoke test applies sql (JPA+Flyway). For Mongo+Mongock use: kodly-scaffold mongodb"
