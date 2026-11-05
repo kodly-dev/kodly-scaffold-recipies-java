@@ -169,11 +169,28 @@ Use Kodly CLI 1.0.18 or newer with scaffolder 1.0.2 or newer. Omitted versions
 select the latest published stable tag; `--skeleton-version <version>` and
 `recipe@<version>` remain available for reproducible manual runs. Publishing a
 new tag affects new scaffold requests only. Existing projects are not upgraded.
-For local development, commit and tag the local clone, then use its `file://` URL.
+For local development, commit and tag the local clone, then use its `file://` URL with
+`KODLY_RECIPES_ALLOW_UNQUALIFIED=1`. A local clone is not in the qualified catalog of the scaffolder.
 
 ## Retire a recipe
 
-`kodly scaffold list` shows the latest stable published tag for every recipe. Unversioned init/create/apply use the same catalog; a manifest change is unavailable until its tag is published. To fully retire a recipe:
+## Release: tags and the qualified catalog
+
+Since `@kodly.dev/scaffolder` 1.1.0, the scaffolder accepts only the tags in its qualified catalog
+(a commit for each tag, shipped in the package). `kodly scaffold list` and `kodly-scaffold list` show the
+latest version in that catalog. Unversioned init/create/apply use the same catalog. So a pushed tag
+reaches new projects only after a scaffolder release with a new catalog:
+
+1. Push the immutable tag. Never move or re-push a published tag: the scaffolder refuses a tag
+   whose commit changed.
+2. In the kodly-cli repository, run
+   `KODLY_RECIPES_REPO_REF=<reviewed-commit-sha> npm run qualify:recipes -- --write`.
+3. Release the scaffolder, then move the pins in kodly-api, the worker image and the harness.
+
+## Retire a recipe
+
+A retired recipe leaves the catalog with the next scaffolder release (step 2 above reads the
+current tags). To fully retire a recipe:
 
 1. Remove `recipes/<name>/` from `main` (and drop it from `settings.gradle`).
 2. Delete its remote tags so apply also fails:
@@ -186,7 +203,7 @@ chmod +x scripts/untag-recipes.sh
 
 ## Automated smoke test
 
-From this repo (requires `kodly` on PATH and tagged recipes):
+From this repo (requires `kodly-scaffold` on PATH, from `npm i -g @kodly.dev/scaffolder`, and tagged recipes):
 
 ```bash
 chmod +x scripts/test-scaffold.sh
